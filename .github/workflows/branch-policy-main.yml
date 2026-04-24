@@ -1,0 +1,24 @@
+name: Branch Policy - Main Source Enforcement
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  enforce-main-source-branch:
+    name: Enforce development -> main only
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR source branch
+        shell: bash
+        run: |
+          if [[ "${{ github.head_ref }}" != "development" ]]; then
+            echo "Only PRs from 'development' are allowed to merge into 'main'."
+            echo "Current source branch: '${{ github.head_ref }}'"
+            exit 1
+          fi
+          echo "Source branch policy satisfied: development -> main"
