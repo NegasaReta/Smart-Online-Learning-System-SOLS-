@@ -1,0 +1,26 @@
+name: PR Validation Baseline
+
+on:
+  pull_request:
+    branches:
+      - development
+      - frontend
+      - backend
+
+permissions:
+  contents: read
+
+jobs:
+  governance-baseline:
+    name: Governance baseline checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ensure required governance files exist
+        shell: bash
+        run: |
+          test -f .github/CODEOWNERS
+          test -f .github/pull_request_template.md
+          test -f .github/rulesets/README.md
+          echo "Governance files are present."

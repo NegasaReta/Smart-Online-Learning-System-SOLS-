@@ -1,0 +1,13 @@
+# Global fallback owners
+* @NegasaReta
+
+# Frontend ownership
+/frontend/ @NegasaReta
+/online-self-learning-tutor/apps/web/ @NegasaReta
+
+# Backend/API ownership
+/backend/ @NegasaReta
+/online-self-learning-tutor/apps/api/ @NegasaReta
+
+# Security and governance ownership
+/.github/ @NegasaReta
