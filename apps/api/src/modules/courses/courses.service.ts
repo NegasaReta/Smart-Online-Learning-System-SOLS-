@@ -1,0 +1,135 @@
+import { pool } from "../../db/index";
+
+// Auto-create courses table on startup
+export const initCoursesTable = async (): Promise<void> => {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS courses (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      subject_name VARCHAR(255) NOT NULL,
+      grade INTEGER NOT NULL CHECK (grade BETWEEN 1 AND 12),
+      description TEXT,
+      teacher_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      language VARCHAR(50) DEFAULT 'english',
+      created_at TIMESTAMP DEFAULT NOW()
+    )
+  `);
+};
+
+export interface Course {
+  id: string;
+  subjectName: string;
+  grade: number;
+  description: string;
+  teacherId: string;
+  language: string;
+  createdAt: Date;
+}
+
+// Create a new subject/course
+export async function createCourse(
+  subjectName: string,
+  grade: number,
+  description: string,
+  teacherId: string,
+  language: string = "english"
+): Promise<Course> {
+  const result = await pool.query(
+    `INSERT INTO courses (subject_name, grade, description, teacher_id, language)
+     VALUES ($1, $2, $3, $4, $5)
+     RETURNING id, subject_name AS "subjectName", grade, description,
+               teacher_id AS "teacherId", language, created_at AS "createdAt"`,
+    [subjectName, grade, description, teacherId, language]
+  );
+  return result.rows[0];
+}
+
+// Get all courses filtered by grade
+export async function getCoursesByGrade(grade: number): Promise<Course[]> {
+  const result = await pool.query(
+    `SELECT id, subject_name AS "subjectName", grade, description,
+            teacher_id AS "teacherId", language, created_at AS "createdAt"
+     FROM courses
+     WHERE grade = $1
+     ORDER BY subject_name ASC`,
+    [grade]
+  );
+  return result.rows;
+}
+
+// Get single course by id
+export async function getCourseById(id: string): Promise<Course | null> {
+  const result = await pool.query(
+    `SELECT id, subject_name AS "subjectName", grade, description,
+            teacher_id AS "teacherId", language, created_at AS "createdAt"
+     FROM courses
+     WHERE id = $1`,
+    [id]
+  );
+  if (result.rows.length === 0) return null;
+  return result.rows[0];
+}
+
+// Update course
+export async function updateCourse(
+  id: string,
+  teacherId: string,
+  subjectName: string,
+  grade: number,
+  description: string,
+  language: string
+): Promise<Course | null> {
+  const result = await pool.query(
+    `UPDATE courses
+     SET subject_name = $1, grade = $2, description = $3, language = $4
+     WHERE id = $5 AND teacher_id = $6
+     RETURNING id, subject_name AS "subjectName", grade, description,
+               teacher_id AS "teacherId", language, created_at AS "createdAt"`,
+    [subjectName, grade, description, language, id, teacherId]
+  );
+  if (result.rows.length === 0) return null;
+  return result.rows[0];
+}
+
+// Delete course
+export async function deleteCourse(
+  id: string,
+  teacherId: string
+): Promise<boolean> {
+  const result = await pool.query(
+    `DELETE FROM courses WHERE id = $1 AND teacher_id = $2`,
+    [id, teacherId]
+  );
+  return (result.rowCount ?? 0) > 0;
+}
+
+// Assign teacher to existing course
+export async function assignTeacher(
+  courseId: string,
+  teacherId: string
+): Promise<Course | null> {
+  const result = await pool.query(
+    `UPDATE courses
+     SET teacher_id = $1
+     WHERE id = $2
+     RETURNING id, subject_name AS "subjectName", grade, description,
+               teacher_id AS "teacherId", language, created_at AS "createdAt"`,
+    [teacherId, courseId]
+  );
+  if (result.rows.length === 0) return null;
+  return result.rows[0];
+}
+
+// Get all courses by teacher
+export async function getCoursesByTeacher(
+  teacherId: string
+): Promise<Course[]> {
+  const result = await pool.query(
+    `SELECT id, subject_name AS "subjectName", grade, description,
+            teacher_id AS "teacherId", language, created_at AS "createdAt"
+     FROM courses
+     WHERE teacher_id = $1
+     ORDER BY grade ASC`,
+    [teacherId]
+  );
+  return result.rows;
+}
