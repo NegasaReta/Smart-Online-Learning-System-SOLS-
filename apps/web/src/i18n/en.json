@@ -1,0 +1,45 @@
+{
+  "app": { "name": "EduSmart K-12" },
+  "common": {
+    "search": "Search courses, assignments...",
+    "viewAll": "View All",
+    "viewSchedule": "View Schedule",
+    "language": "Language",
+    "notifications": "Notifications",
+    "settings": "Settings"
+  },
+  "sidebar": {
+    "portal": "Student Portal",
+    "grade": "Grade 10 · Section A",
+    "dashboard": "Dashboard",
+    "myCourses": "Classes",
+    "assignments": "Assignments",
+    "grades": "Grades",
+    "assessments": "Assessments",
+    "schedule": "Schedule",
+    "resources": "Resources",
+    "helpCenter": "Help Center",
+    "logout": "Logout"
+  },
+  "student": {
+    "welcomeBack": "Welcome back, {name}",
+    "dueToday": "Ready to conquer Grade 10 today? You have {count} assignments due.",
+    "overallProgress": "Overall Progress",
+    "semester": "Semester 1 · 2024",
+    "progressMessage": "Great job! You are ahead of schedule in 3 subjects.",
+    "weeklyDelta": "+5% this week",
+    "upNext": "Up Next",
+    "learningPath": "Your Learning Path",
+    "currentCourses": "Current Courses",
+    "recentGrades": "Recent Grades",
+    "upcomingTasks": "Upcoming Tasks",
+    "encouragement": "Keep going! Every lesson counts."
+  },
+  "pages": {
+    "myClasses": "My Classes",
+    "assignments": "Assignments",
+    "schedule": "My Schedule",
+    "grades": "Grades",
+    "resources": "Resources"
+  }
+}

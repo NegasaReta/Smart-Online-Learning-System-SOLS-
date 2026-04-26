@@ -1,0 +1,45 @@
+{
+  "app": { "name": "EduSmart K-12" },
+  "common": {
+    "search": "Koorsii fi hojii barbaadi...",
+    "viewAll": "Hunda Ilaali",
+    "viewSchedule": "Yeroo Sagantaa Ilaali",
+    "language": "Afaan",
+    "notifications": "Beeksisawwan",
+    "settings": "Qindaa'ina"
+  },
+  "sidebar": {
+    "portal": "Karaa Barataa",
+    "grade": "Kutaa 10 · Garee A",
+    "dashboard": "Daashboordii",
+    "myCourses": "Daree",
+    "assignments": "Hojiiwwan",
+    "grades": "Qabxiiwwan",
+    "assessments": "Madaallii",
+    "schedule": "Yeroo Sagantaa",
+    "resources": "Qabeenyaalee",
+    "helpCenter": "Wiirtuu Gargaarsaa",
+    "logout": "Bahi"
+  },
+  "student": {
+    "welcomeBack": "Baga nagaan dhufte, {name}",
+    "dueToday": "Har'a kutaa 10 mo'achuuf qophii? Hojiiwwan {count} qabda.",
+    "overallProgress": "Guddina Waliigalaa",
+    "semester": "Sameestera 1ffaa · 2024",
+    "progressMessage": "Hojii gaarii! Barnoota 3 keessatti yeroo dura jirta.",
+    "weeklyDelta": "Torban kana +5%",
+    "upNext": "Itti Aanu",
+    "learningPath": "Karaa Barumsaa Kee",
+    "currentCourses": "Koorsiiwwan Ammaa",
+    "recentGrades": "Qabxiiwwan Dhihoo",
+    "upcomingTasks": "Hojiiwwan Dhufan",
+    "encouragement": "Itti fufi! Barumsi hundi barbaachisaadha."
+  },
+  "pages": {
+    "myClasses": "Kutaalee Koo",
+    "assignments": "Hojiiwwan",
+    "schedule": "Yeroo Sagantaa Koo",
+    "grades": "Qabxiiwwan",
+    "resources": "Qabeenyaalee"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "app": { "name": "ኢዱስማርት K-12" },
+  "common": {
+    "search": "ኮርሶችን፣ ምደባዎችን ፈልግ...",
+    "viewAll": "ሁሉንም ይመልከቱ",
+    "viewSchedule": "የጊዜ ሰሌዳውን ይመልከቱ",
+    "language": "ቋንቋ",
+    "notifications": "ማሳወቂያዎች",
+    "settings": "ቅንጅቶች"
+  },
+  "sidebar": {
+    "portal": "የተማሪ መግቢያ",
+    "grade": "10ኛ ክፍል · ሴክሽን ሀ",
+    "dashboard": "ዳሽቦርድ",
+    "myCourses": "ክፍሎች",
+    "assignments": "ምደባዎች",
+    "grades": "ውጤቶች",
+    "assessments": "ግምገማዎች",
+    "schedule": "የጊዜ ሰሌዳ",
+    "resources": "መርጃዎች",
+    "helpCenter": "የእርዳታ ማዕከል",
+    "logout": "ውጣ"
+  },
+  "student": {
+    "welcomeBack": "እንኳን ደህና መጡ፣ {name}",
+    "dueToday": "ዛሬ 10ኛ ክፍል ለማሸነፍ ዝግጁ ነህ? {count} የቤት ሥራዎች አሉህ።",
+    "overallProgress": "አጠቃላይ እድገት",
+    "semester": "1ኛ ሴሚስተር · 2024",
+    "progressMessage": "በጣም ጥሩ! በ3 ትምህርቶች ከጊዜ ሰሌዳው ቀድመህ ነህ።",
+    "weeklyDelta": "በዚህ ሳምንት +5%",
+    "upNext": "ቀጣይ",
+    "learningPath": "የመማር መንገድህ",
+    "currentCourses": "የአሁን ኮርሶች",
+    "recentGrades": "የቅርብ ውጤቶች",
+    "upcomingTasks": "የሚመጡ ተግባራት",
+    "encouragement": "ቀጥል! እያንዳንዱ ትምህርት ጠቃሚ ነው።"
+  },
+  "pages": {
+    "myClasses": "የእኔ ክፍሎች",
+    "assignments": "ምደባዎች",
+    "schedule": "የእኔ የጊዜ ሰሌዳ",
+    "grades": "ውጤቶች",
+    "resources": "መርጃዎች"
+  }
+}
