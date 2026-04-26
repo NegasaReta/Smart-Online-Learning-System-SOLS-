@@ -1,9 +1,12 @@
 import { BookOpen, FlaskConical, Languages } from "lucide-react";
 import type { ComponentType, SVGProps } from "react";
+import { Link } from "react-router-dom";
 import { useT } from "@/i18n/I18nProvider";
 
 type Course = {
   title: string;
+  /** URL-safe slug used for the detail route. */
+  slug: string;
   teacher: string;
   progress: number;
   icon: ComponentType<SVGProps<SVGSVGElement>>;
@@ -16,6 +19,7 @@ type Course = {
 const courses: Course[] = [
   {
     title: "Mathematics",
+    slug: "advanced-mathematics",
     teacher: "Mr. Dawit",
     progress: 82,
     icon: BookOpen,
@@ -24,6 +28,7 @@ const courses: Course[] = [
   },
   {
     title: "Science",
+    slug: "biology-101",
     teacher: "Ms. Tigist",
     progress: 65,
     icon: FlaskConical,
@@ -32,6 +37,7 @@ const courses: Course[] = [
   },
   {
     title: "Amharic",
+    slug: "amharic-literature",
     teacher: "Dr. Alemu",
     progress: 90,
     icon: Languages,
@@ -51,9 +57,12 @@ export function CurrentCoursesCard() {
         <h3 className="text-sm font-semibold text-ink-900">
           {t("student.currentCourses")}
         </h3>
-        <a href="#" className="text-xs font-semibold text-brand hover:underline">
+        <Link
+          to="/student/classes"
+          className="text-xs font-semibold text-brand hover:underline"
+        >
           {t("common.viewAll")}
-        </a>
+        </Link>
       </header>
 
       <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -68,7 +77,10 @@ export function CurrentCoursesCard() {
 function CourseCard({ course }: { course: Course }) {
   const Icon = course.icon;
   return (
-    <article className="flex flex-col gap-3 rounded-xl border border-ink-200 p-3">
+    <Link
+      to={`/student/classes/${course.slug}`}
+      className="flex flex-col gap-3 rounded-xl border border-ink-200 p-3 transition hover:border-brand/40 hover:bg-brand/5 hover:shadow-card"
+    >
       <div className="flex items-start gap-2">
         <span
           className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${course.tileClass}`}
@@ -93,6 +105,6 @@ function CourseCard({ course }: { course: Course }) {
           />
         </div>
       </div>
-    </article>
+    </Link>
   );
 }

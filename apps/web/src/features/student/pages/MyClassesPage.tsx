@@ -6,6 +6,7 @@ import {
   Languages,
   Globe,
   Monitor,
+  Search,
 } from "lucide-react";
 import { Sidebar } from "../components/Sidebar";
 import { Topbar } from "../components/Topbar";
@@ -135,12 +136,22 @@ const FILTERS: { id: Filter; label: string }[] = [
  */
 export default function MyClassesPage() {
   const [filter, setFilter] = useState<Filter>("all");
+  const [query, setQuery] = useState("");
 
-  const visible = classes.filter((c) => {
-    if (filter === "all") return true;
-    if (filter === "completed") return c.progress >= 100;
-    return c.progress < 100;
-  });
+  const visible = classes
+    .filter((c) => {
+      if (filter === "all") return true;
+      if (filter === "completed") return c.progress >= 100;
+      return c.progress < 100;
+    })
+    .filter((c) => {
+      if (!query.trim()) return true;
+      const q = query.toLowerCase();
+      return (
+        c.title.toLowerCase().includes(q) ||
+        c.teacher.toLowerCase().includes(q)
+      );
+    });
 
   return (
     <div className="flex min-h-screen bg-ink-50">
@@ -183,10 +194,33 @@ export default function MyClassesPage() {
               </div>
             </header>
 
+            {/* Search */}
+            <div className="mt-5">
+              <label className="relative flex max-w-md items-center">
+                <Search
+                  className="pointer-events-none absolute left-3 size-4 text-ink-500"
+                  aria-hidden
+                />
+                <input
+                  type="search"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search classes or teachers…"
+                  className="h-10 w-full rounded-full border border-ink-200 bg-white pl-9 pr-4 text-sm text-ink-900 placeholder:text-ink-500 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+                />
+              </label>
+            </div>
+
             {/* Grid of class cards */}
             <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {visible.map((c) => (
-                <ClassCard key={c.period} item={c} />
+              {visible.map((c, i) => (
+                <div
+                  key={c.period}
+                  style={{ animationDelay: `${i * 70}ms` }}
+                  className="animate-fade-in-up"
+                >
+                  <ClassCard item={c} />
+                </div>
               ))}
             </div>
 

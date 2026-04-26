@@ -1,5 +1,9 @@
 import { CheckCircle2, PlayCircle, Lock } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useT } from "@/i18n/I18nProvider";
+
+/** Slug for the active learning-path course. */
+const COURSE_SLUG = "advanced-mathematics";
 
 type Status = "completed" | "active" | "locked";
 
@@ -67,12 +71,12 @@ function LessonRow({ lesson }: { lesson: Lesson }) {
             <div className="text-sm font-medium text-ink-900">{lesson.title}</div>
           </div>
         </div>
-        <button
-          type="button"
+        <Link
+          to={`/student/classes/${COURSE_SLUG}`}
           className="rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-brand-600"
         >
           Resume
-        </button>
+        </Link>
       </li>
     );
   }
@@ -111,12 +115,12 @@ function LessonRow({ lesson }: { lesson: Lesson }) {
           <div className="text-sm font-medium text-ink-900">{lesson.title}</div>
         </div>
       </div>
-      <button
-        type="button"
+      <Link
+        to={`/student/classes/${COURSE_SLUG}`}
         className="text-xs font-semibold text-brand hover:underline"
       >
         Review
-      </button>
+      </Link>
     </li>
   );
 }

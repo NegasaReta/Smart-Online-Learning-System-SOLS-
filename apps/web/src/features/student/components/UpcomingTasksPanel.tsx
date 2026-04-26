@@ -1,4 +1,5 @@
 import { AlertTriangle, FileText } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useT } from "@/i18n/I18nProvider";
 
 /**
@@ -32,13 +33,13 @@ export function UpcomingTasksPanel() {
           <p className="mt-1 text-xs text-ink-500">
             Complete all 15 algebra problems.
           </p>
-          <button
-            type="button"
+          <Link
+            to="/student/assignments"
             className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-ink-200 bg-white px-3 py-1.5 text-xs font-semibold text-ink-700 shadow-card transition hover:bg-ink-50"
           >
             <FileText className="size-3.5" aria-hidden />
             Submit Assignment
-          </button>
+          </Link>
         </article>
 
         {/* Task 2 — due in 3 days */}
@@ -52,12 +53,12 @@ export function UpcomingTasksPanel() {
           <p className="mt-1 text-xs text-ink-500">
             Submit your topic and initial research outline.
           </p>
-          <button
-            type="button"
-            className="mt-3 w-full rounded-lg bg-brand px-3 py-2 text-xs font-semibold text-white shadow-card transition hover:bg-brand-600"
+          <Link
+            to="/student/assignments"
+            className="mt-3 block w-full rounded-lg bg-brand px-3 py-2 text-center text-xs font-semibold text-white shadow-card transition hover:bg-brand-600"
           >
             Continue Working
-          </button>
+          </Link>
         </article>
 
         {/* Task 3 — next week */}
@@ -75,9 +76,12 @@ export function UpcomingTasksPanel() {
       </div>
 
       <div className="mt-4 flex justify-center border-t border-ink-100 pt-4">
-        <a href="#" className="text-xs font-semibold text-brand hover:underline">
+        <Link
+          to="/student/schedule"
+          className="text-xs font-semibold text-brand hover:underline"
+        >
           View Calendar
-        </a>
+        </Link>
       </div>
     </section>
   );

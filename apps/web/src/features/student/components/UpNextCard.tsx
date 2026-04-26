@@ -1,5 +1,9 @@
-import { Timer, ChevronRight, Clock } from "lucide-react";
+import { useState } from "react";
+import { Timer, ChevronRight, Clock, Check } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { useT } from "@/i18n/I18nProvider";
+
+const LESSON_SLUG = "advanced-mathematics";
 
 /**
  * "Up Next" card — highlights the next upcoming live lesson.
@@ -7,6 +11,17 @@ import { useT } from "@/i18n/I18nProvider";
  */
 export function UpNextCard() {
   const { t } = useT();
+  const navigate = useNavigate();
+  const [joining, setJoining] = useState(false);
+
+  function handleJoin() {
+    setJoining(true);
+    // Brief "Joining…" feedback before routing into the live lesson.
+    setTimeout(() => {
+      navigate(`/student/classes/${LESSON_SLUG}`);
+    }, 600);
+  }
+
   return (
     <section
       className="relative overflow-hidden rounded-2xl p-5 text-white shadow-card"
@@ -25,16 +40,17 @@ export function UpNextCard() {
       </header>
 
       {/* Breadcrumb */}
-      <nav
-        className="mt-3 flex flex-wrap items-center gap-1 text-[11px] font-medium text-brand-100"
-        aria-label="Lesson path"
+      <Link
+        to={`/student/classes/${LESSON_SLUG}`}
+        className="mt-3 flex flex-wrap items-center gap-1 text-[11px] font-medium text-brand-100 hover:underline"
+        aria-label="Open lesson detail"
       >
         <span>Advanced Mathematics</span>
         <ChevronRight className="size-3" aria-hidden />
         <span>Chapter 4</span>
         <ChevronRight className="size-3" aria-hidden />
         <span>Lesson 2</span>
-      </nav>
+      </Link>
 
       <h3 className="mt-1 text-lg font-semibold leading-6 text-white">
         Quadratic Equations
@@ -48,9 +64,18 @@ export function UpNextCard() {
         </div>
         <button
           type="button"
-          className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-brand shadow-card transition hover:bg-brand-50"
+          onClick={handleJoin}
+          disabled={joining}
+          className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-brand shadow-card transition hover:bg-brand-50 disabled:opacity-80"
         >
-          Join Class
+          {joining ? (
+            <>
+              <Check className="size-3.5" aria-hidden />
+              Joining…
+            </>
+          ) : (
+            "Join Class"
+          )}
         </button>
       </div>
     </section>

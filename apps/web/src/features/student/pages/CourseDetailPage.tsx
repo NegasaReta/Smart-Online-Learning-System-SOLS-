@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ChevronRight,
   Play,
@@ -12,6 +12,10 @@ import {
   FlaskConical,
   Users,
   ChevronLeft,
+  Download,
+  X,
+  Send,
+  ArrowUpRight,
 } from "lucide-react";
 import { Sidebar } from "../components/Sidebar";
 import { Topbar } from "../components/Topbar";
@@ -34,8 +38,11 @@ import {
  */
 export default function CourseDetailPage() {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const [course, setCourse] = useState<CourseDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showSyllabus, setShowSyllabus] = useState(false);
+  const [showMessage, setShowMessage] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -49,6 +56,40 @@ export default function CourseDetailPage() {
       active = false;
     };
   }, [slug]);
+
+  /** Finds the current lesson ID (first lesson with status "current"). */
+  const currentLessonId = useMemo(() => {
+    if (!course) return null;
+    for (const m of course.modules) {
+      const cur = m.lessons.find((l) => l.status === "current");
+      if (cur) return cur.id;
+    }
+    return null;
+  }, [course]);
+
+  function handleResume() {
+    const target = currentLessonId ?? course?.modules[0]?.lessons[0]?.id ?? "l3";
+    navigate(`/student/classes/${slug}/lesson/${target}`);
+  }
+
+  function handleStartLesson(lid: string) {
+    navigate(`/student/classes/${slug}/lesson/${lid}`);
+  }
+
+  function handleDownloadResource(title: string) {
+    const blob = new Blob(
+      [`Resource: ${title}\n(downloaded from SOLS Course Resources)`],
+      { type: "text/plain" },
+    );
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${title.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
 
   return (
     <div className="flex min-h-screen bg-surface-page font-sans text-ink-900">
@@ -92,7 +133,11 @@ export default function CourseDetailPage() {
 
           {course && (
             <>
-              <CourseHeader course={course} />
+              <CourseHeader
+                course={course}
+                onResume={handleResume}
+                onSyllabus={() => setShowSyllabus(true)}
+              />
 
               <div className="mt-7 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
                 {/* Modules column */}
@@ -100,15 +145,25 @@ export default function CourseDetailPage() {
                   <h2 className="text-base font-bold text-ink-900">Modules</h2>
                   <div className="mt-3 flex flex-col gap-4">
                     {course.modules.map((m) => (
-                      <ModuleCard key={m.id} module={m} />
+                      <ModuleCard
+                        key={m.id}
+                        module={m}
+                        onStart={handleStartLesson}
+                      />
                     ))}
                   </div>
                 </section>
 
                 {/* Right rail */}
                 <aside className="flex flex-col gap-4">
-                  <InstructorCard course={course} />
-                  <ResourcesCard course={course} />
+                  <InstructorCard
+                    course={course}
+                    onMessage={() => setShowMessage(true)}
+                  />
+                  <ResourcesCard
+                    course={course}
+                    onDownload={handleDownloadResource}
+                  />
                   <UpcomingCard items={course.upcoming} />
                 </aside>
               </div>
@@ -123,6 +178,21 @@ export default function CourseDetailPage() {
                   Back to Classes
                 </Link>
               </div>
+
+              {/* Modals */}
+              {showSyllabus && (
+                <SyllabusModal
+                  course={course}
+                  onClose={() => setShowSyllabus(false)}
+                  onStart={handleStartLesson}
+                />
+              )}
+              {showMessage && (
+                <MessageComposerModal
+                  recipient={course.instructorBio}
+                  onClose={() => setShowMessage(false)}
+                />
+              )}
             </>
           )}
         </main>
@@ -133,9 +203,17 @@ export default function CourseDetailPage() {
 
 /* ------------------------------ Course header ------------------------------ */
 
-function CourseHeader({ course }: { course: CourseDetail }) {
+function CourseHeader({
+  course,
+  onResume,
+  onSyllabus,
+}: {
+  course: CourseDetail;
+  onResume: () => void;
+  onSyllabus: () => void;
+}) {
   return (
-    <section className="relative mt-3 overflow-hidden rounded-2xl border border-ink-200 bg-white p-6 shadow-card">
+    <section className="relative mt-3 overflow-hidden rounded-2xl border border-ink-200 bg-white p-6 shadow-card animate-fade-in-up">
       {/* Decorative gradient circle */}
       <span
         aria-hidden
@@ -183,6 +261,7 @@ function CourseHeader({ course }: { course: CourseDetail }) {
         <div className="flex shrink-0 flex-col gap-2">
           <button
             type="button"
+            onClick={onResume}
             className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-brand px-5 text-sm font-semibold text-white shadow-card transition hover:bg-brand-600"
           >
             <Play className="size-4 fill-white" aria-hidden />
@@ -190,6 +269,7 @@ function CourseHeader({ course }: { course: CourseDetail }) {
           </button>
           <button
             type="button"
+            onClick={onSyllabus}
             className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-ink-200 bg-white px-5 text-sm font-semibold text-brand transition hover:bg-ink-50"
           >
             <FileText className="size-4" aria-hidden />
@@ -203,12 +283,18 @@ function CourseHeader({ course }: { course: CourseDetail }) {
 
 /* ------------------------------ Module card ------------------------------ */
 
-function ModuleCard({ module: m }: { module: ModuleTopic }) {
+function ModuleCard({
+  module: m,
+  onStart,
+}: {
+  module: ModuleTopic;
+  onStart: (lid: string) => void;
+}) {
   const locked = m.state === "locked";
 
   return (
     <article
-      className={`rounded-2xl border bg-white p-5 shadow-card ${
+      className={`rounded-2xl border bg-white p-5 shadow-card animate-fade-in-up ${
         locked ? "border-ink-200" : "border-ink-200"
       }`}
     >
@@ -261,7 +347,7 @@ function ModuleCard({ module: m }: { module: ModuleTopic }) {
       {!locked && (
         <ul className="mt-4 flex flex-col">
           {m.lessons.map((l) => (
-            <LessonRow key={l.id} lesson={l} />
+            <LessonRow key={l.id} lesson={l} onStart={onStart} />
           ))}
         </ul>
       )}
@@ -271,7 +357,13 @@ function ModuleCard({ module: m }: { module: ModuleTopic }) {
 
 /* ------------------------------ Lesson row ------------------------------ */
 
-function LessonRow({ lesson }: { lesson: Lesson }) {
+function LessonRow({
+  lesson,
+  onStart,
+}: {
+  lesson: Lesson;
+  onStart: (lid: string) => void;
+}) {
   const isCurrent = lesson.status === "current";
   const isLocked = lesson.status === "locked";
 
@@ -308,12 +400,17 @@ function LessonRow({ lesson }: { lesson: Lesson }) {
         </p>
       </div>
 
-      {isCurrent && (
+      {(isCurrent || lesson.status === "completed") && (
         <button
           type="button"
-          className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-white transition hover:bg-brand-600"
+          onClick={() => onStart(lesson.id)}
+          className={`inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold transition ${
+            isCurrent
+              ? "bg-brand text-white hover:bg-brand-600"
+              : "border border-ink-200 bg-white text-ink-700 hover:bg-ink-50"
+          }`}
         >
-          Start
+          {isCurrent ? "Start" : "Review"}
         </button>
       )}
     </li>
@@ -359,7 +456,13 @@ function LessonMetaIcon({ kind }: { kind: Lesson["metaIcon"] }) {
 
 /* --------------------------- Right rail blocks --------------------------- */
 
-function InstructorCard({ course }: { course: CourseDetail }) {
+function InstructorCard({
+  course,
+  onMessage,
+}: {
+  course: CourseDetail;
+  onMessage: () => void;
+}) {
   return (
     <section className="rounded-2xl border border-ink-200 bg-white p-5 shadow-card">
       <h3 className="text-[11px] font-bold uppercase tracking-wider text-ink-500">
@@ -375,20 +478,27 @@ function InstructorCard({ course }: { course: CourseDetail }) {
           <p className="text-sm font-bold text-ink-900">
             {course.instructorBio.name}
           </p>
-          <a
-            href="#"
+          <button
+            type="button"
+            onClick={onMessage}
             className="mt-0.5 inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline"
           >
             <Mail className="size-3.5" aria-hidden />
             Message
-          </a>
+          </button>
         </div>
       </div>
     </section>
   );
 }
 
-function ResourcesCard({ course }: { course: CourseDetail }) {
+function ResourcesCard({
+  course,
+  onDownload,
+}: {
+  course: CourseDetail;
+  onDownload: (title: string) => void;
+}) {
   return (
     <section className="rounded-2xl border border-ink-200 bg-white p-5 shadow-card">
       <h3 className="text-[11px] font-bold uppercase tracking-wider text-ink-500">
@@ -397,13 +507,15 @@ function ResourcesCard({ course }: { course: CourseDetail }) {
       <ul className="mt-3 flex flex-col gap-3">
         {course.resources.map((r) => (
           <li key={r.id}>
-            <a
-              href="#"
-              className="flex items-center gap-3 rounded-lg px-1 py-1 text-sm text-ink-900 transition hover:bg-ink-50"
+            <button
+              type="button"
+              onClick={() => onDownload(r.title)}
+              className="flex w-full items-center gap-3 rounded-lg px-1 py-1 text-left text-sm text-ink-900 transition hover:bg-ink-50"
             >
               <ResourceIcon kind={r.iconKey} />
               <span className="font-medium">{r.title}</span>
-            </a>
+              <Download className="ml-auto size-4 text-ink-400" aria-hidden />
+            </button>
           </li>
         ))}
       </ul>
@@ -441,9 +553,12 @@ function UpcomingCard({ items }: { items: UpcomingItem[] }) {
         <h3 className="text-[11px] font-bold uppercase tracking-wider text-ink-500">
           Upcoming
         </h3>
-        <a href="#" className="text-xs font-semibold text-brand hover:underline">
+        <Link
+          to="/student/schedule"
+          className="text-xs font-semibold text-brand hover:underline"
+        >
           View All
-        </a>
+        </Link>
       </header>
       <ul className="mt-3 flex flex-col gap-3">
         {items.map((u) => (
@@ -469,5 +584,252 @@ function UpcomingCard({ items }: { items: UpcomingItem[] }) {
         ))}
       </ul>
     </section>
+  );
+}
+
+/* ------------------------------ Syllabus modal ------------------------------ */
+
+function SyllabusModal({
+  course,
+  onClose,
+  onStart,
+}: {
+  course: CourseDetail;
+  onClose: () => void;
+  onStart: (lid: string) => void;
+}) {
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/50 p-4 animate-fade-in"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="max-h-[85vh] w-full max-w-2xl overflow-hidden rounded-2xl border border-ink-200 bg-white shadow-card animate-scale-in"
+      >
+        <header className="flex items-center justify-between border-b border-ink-100 px-6 py-4">
+          <div>
+            <h2 className="text-lg font-bold text-ink-900">
+              {course.title} — Syllabus
+            </h2>
+            <p className="text-xs text-ink-500">
+              {course.meta} · {course.modules.length} modules
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="rounded-md p-1 text-ink-500 hover:bg-ink-100"
+          >
+            <X className="size-5" aria-hidden />
+          </button>
+        </header>
+
+        <div className="max-h-[60vh] overflow-y-auto px-6 py-4">
+          {course.modules.map((m, mi) => (
+            <div key={m.id} className="mb-5 last:mb-0">
+              <div className="flex items-center gap-2">
+                <span
+                  className={`text-[10px] font-bold uppercase tracking-wider ${
+                    m.state === "locked" ? "text-ink-400" : "text-brand"
+                  }`}
+                >
+                  Module {mi + 1}
+                </span>
+                {m.state === "locked" && (
+                  <Lock className="size-3 text-ink-400" aria-hidden />
+                )}
+              </div>
+              <h3
+                className={`text-base font-bold ${
+                  m.state === "locked" ? "text-ink-500" : "text-ink-900"
+                }`}
+              >
+                {m.title}
+              </h3>
+              {m.lockedMeta && (
+                <p className="text-xs text-ink-400">{m.lockedMeta}</p>
+              )}
+
+              {m.lessons.length > 0 && (
+                <ul className="mt-3 flex flex-col gap-2">
+                  {m.lessons.map((l) => (
+                    <li
+                      key={l.id}
+                      className="flex items-center justify-between rounded-lg border border-ink-100 px-3 py-2"
+                    >
+                      <div className="flex items-center gap-3">
+                        <LessonStatusIcon status={l.status} />
+                        <div>
+                          <p className="text-sm font-semibold text-ink-900">
+                            {l.index} {l.title}
+                          </p>
+                          <p className="text-xs text-ink-500">
+                            {l.meta}
+                          </p>
+                        </div>
+                      </div>
+                      {(l.status === "current" || l.status === "completed") && (
+                        <button
+                          type="button"
+                          onClick={() => onStart(l.id)}
+                          className="inline-flex h-7 items-center gap-1 rounded-md bg-brand px-2.5 text-xs font-semibold text-white transition hover:bg-brand-600"
+                        >
+                          {l.status === "current" ? "Start" : "Review"}
+                          <ArrowUpRight className="size-3" aria-hidden />
+                        </button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <footer className="border-t border-ink-100 px-6 py-3 text-right">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg border border-ink-200 bg-white px-4 py-2 text-sm font-semibold text-ink-700 transition hover:bg-ink-50"
+          >
+            Close
+          </button>
+        </footer>
+      </div>
+    </div>
+  );
+}
+
+/* ----------------------------- Message composer ----------------------------- */
+
+function MessageComposerModal({
+  recipient,
+  onClose,
+}: {
+  recipient: { name: string; avatar: string };
+  onClose: () => void;
+}) {
+  const [subject, setSubject] = useState("");
+  const [body, setBody] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  function submit() {
+    if (!subject.trim() || !body.trim()) return;
+    setSending(true);
+    setTimeout(() => {
+      setSending(false);
+      setSent(true);
+    }, 900);
+  }
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/50 p-4 animate-fade-in"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-lg overflow-hidden rounded-2xl border border-ink-200 bg-white shadow-card animate-scale-in"
+      >
+        <header className="flex items-center justify-between border-b border-ink-100 px-5 py-3">
+          <div className="flex items-center gap-3">
+            <img
+              src={recipient.avatar}
+              alt={recipient.name}
+              className="size-10 rounded-full object-cover"
+            />
+            <div>
+              <h2 className="text-sm font-bold text-ink-900">
+                Message {recipient.name}
+              </h2>
+              <p className="text-xs text-ink-500">
+                Course: Biology 101
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="rounded-md p-1 text-ink-500 hover:bg-ink-100"
+          >
+            <X className="size-4" aria-hidden />
+          </button>
+        </header>
+
+        <div className="px-5 py-4">
+          {sent ? (
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-6 text-center">
+              <CheckCircle2
+                className="mx-auto size-10 text-emerald-600"
+                aria-hidden
+              />
+              <p className="mt-2 text-sm font-semibold text-emerald-700">
+                Message sent successfully
+              </p>
+              <button
+                type="button"
+                onClick={onClose}
+                className="mt-4 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white shadow-card transition hover:bg-brand-600"
+              >
+                Done
+              </button>
+            </div>
+          ) : (
+            <>
+              <label className="block text-xs font-semibold text-ink-500">
+                Subject
+              </label>
+              <input
+                type="text"
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                placeholder="e.g., Question about the assignment"
+                className="mt-1 h-10 w-full rounded-lg border border-ink-200 bg-white px-3 text-sm text-ink-900 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+              />
+
+              <label className="mt-3 block text-xs font-semibold text-ink-500">
+                Message
+              </label>
+              <textarea
+                value={body}
+                onChange={(e) => setBody(e.target.value)}
+                rows={5}
+                placeholder="Type your message..."
+                className="mt-1 w-full resize-none rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-900 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+              />
+            </>
+          )}
+        </div>
+
+        {!sent && (
+          <footer className="flex items-center justify-end gap-2 border-t border-ink-100 px-5 py-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg border border-ink-200 bg-white px-4 py-2 text-sm font-semibold text-ink-700 transition hover:bg-ink-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={submit}
+              disabled={!subject.trim() || !body.trim() || sending}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white shadow-card transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Send className="size-4" aria-hidden />
+              {sending ? "Sending…" : "Send"}
+            </button>
+          </footer>
+        )}
+      </div>
+    </div>
   );
 }

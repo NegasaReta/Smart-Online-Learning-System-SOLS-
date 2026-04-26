@@ -9,6 +9,9 @@ import GradesPage from "@/features/student/pages/GradesPage";
 import ResourcesPage from "@/features/student/pages/ResourcesPage";
 import AssessmentsPage from "@/features/student/pages/AssessmentsPage";
 import CourseDetailPage from "@/features/student/pages/CourseDetailPage";
+import AssignmentDetailPage from "@/features/student/pages/AssignmentDetailPage";
+import AssessmentDetailPage from "@/features/student/pages/AssessmentDetailPage";
+import LessonPlayerPage from "@/features/student/pages/LessonPlayerPage";
 import SettingsLayout from "@/features/student/settings/SettingsLayout";
 import SettingsSecurityPage from "@/features/student/pages/SettingsSecurityPage";
 import SettingsPreferencesPage from "@/features/student/pages/SettingsPreferencesPage";
@@ -46,11 +49,23 @@ export function AppRouter() {
       <Route path="/student/dashboard" element={<StudentDashboardPage />} />
       <Route path="/student/classes" element={<MyClassesPage />} />
       <Route path="/student/classes/:slug" element={<CourseDetailPage />} />
+      <Route
+        path="/student/classes/:slug/lesson/:lessonId"
+        element={<LessonPlayerPage />}
+      />
       <Route path="/student/assignments" element={<AssignmentsPage />} />
+      <Route
+        path="/student/assignments/:id"
+        element={<AssignmentDetailPage />}
+      />
       <Route path="/student/schedule" element={<SchedulePage />} />
       <Route path="/student/grades" element={<GradesPage />} />
       <Route path="/student/resources" element={<ResourcesPage />} />
       <Route path="/student/assessments" element={<AssessmentsPage />} />
+      <Route
+        path="/student/assessments/:id"
+        element={<AssessmentDetailPage />}
+      />
       <Route path="/student/settings" element={<SettingsLayout />}>
         <Route index element={<Navigate to="security" replace />} />
         <Route path="security" element={<SettingsSecurityPage />} />

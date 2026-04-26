@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   GraduationCap,
   Award,
@@ -6,12 +7,16 @@ import {
   Download,
   PartyPopper,
   CalendarDays,
+  Check,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Sidebar } from "../components/Sidebar";
 import { Topbar } from "../components/Topbar";
 import { ProgressOverTimeChart } from "../components/ProgressOverTimeChart";
 import { SkillsRadarChartCard } from "../components/SkillsRadarChart";
 import { SubjectBreakdownCard } from "../components/SubjectBreakdownCard";
+
+const TERMS = ["Fall 2024", "Spring 2024", "Fall 2023", "Spring 2023"];
 
 /**
  * Grades / Performance Analytics page.
@@ -19,6 +24,44 @@ import { SubjectBreakdownCard } from "../components/SubjectBreakdownCard";
  * (Subject Breakdown + Teacher Remarks) → encouragement banner.
  */
 export default function GradesPage() {
+  const [term, setTerm] = useState<string>(TERMS[0]);
+  const [termOpen, setTermOpen] = useState(false);
+  const [bookingState, setBookingState] = useState<
+    "idle" | "booking" | "booked"
+  >("idle");
+
+  /** Builds and downloads a text-based grade report (mock PDF). */
+  function handleDownload() {
+    const lines = [
+      `Grade Report — ${term}`,
+      "==============================",
+      "Cumulative GPA: 3.7 / 4.0 (+0.2 from last term)",
+      "Class Rank: 12 / 48 (Top 25%)",
+      "Attendance: 96% (2 absences)",
+      "",
+      "Subjects:",
+      "  - Mathematics: 92/100 (A)",
+      "  - Science:     87/100 (B+)",
+      "  - History:     85/100 (B+)",
+      "  - Literature:  91/100 (A-)",
+      "  - Amharic:     94/100 (A)",
+    ];
+    const blob = new Blob([lines.join("\n")], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `grade-report-${term.toLowerCase().replace(/\s+/g, "-")}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function handleBookSession() {
+    setBookingState("booking");
+    setTimeout(() => setBookingState("booked"), 800);
+  }
+
   return (
     <div className="flex min-h-screen bg-surface-page font-sans text-ink-900">
       <Sidebar />
@@ -27,7 +70,16 @@ export default function GradesPage() {
         <Topbar />
 
         <main className="mx-auto w-full max-w-[1200px] flex-1 px-8 pb-12 pt-6">
-          <PageHeader />
+          <PageHeader
+            term={term}
+            termOpen={termOpen}
+            onToggleTerm={() => setTermOpen((o) => !o)}
+            onSelectTerm={(t) => {
+              setTerm(t);
+              setTermOpen(false);
+            }}
+            onDownload={handleDownload}
+          />
 
           <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-3">
             <StatCard
@@ -81,7 +133,10 @@ export default function GradesPage() {
             <TeacherRemarksCard />
           </div>
 
-          <EncouragementBanner />
+          <EncouragementBanner
+            booking={bookingState}
+            onBook={handleBookSession}
+          />
         </main>
       </div>
     </div>
@@ -90,26 +145,75 @@ export default function GradesPage() {
 
 /* ----------------------------- Page header ----------------------------- */
 
-function PageHeader() {
+function PageHeader({
+  term,
+  termOpen,
+  onToggleTerm,
+  onSelectTerm,
+  onDownload,
+}: {
+  term: string;
+  termOpen: boolean;
+  onToggleTerm: () => void;
+  onSelectTerm: (t: string) => void;
+  onDownload: () => void;
+}) {
   return (
     <header className="flex flex-wrap items-center justify-between gap-3">
       <h1 className="text-2xl font-bold tracking-tight text-ink-900">
         Enhanced Performance Analytics Dashboard
       </h1>
       <div className="flex items-center gap-3">
+        <div className="relative">
+          <button
+            type="button"
+            onClick={onToggleTerm}
+            aria-expanded={termOpen}
+            className="inline-flex h-9 items-center gap-2 rounded-lg border border-ink-200 bg-white px-3 text-sm font-medium text-ink-700 shadow-card transition hover:bg-ink-50"
+          >
+            {term}
+            <ChevronDown
+              className={
+                "size-4 text-ink-500 transition " +
+                (termOpen ? "rotate-180" : "")
+              }
+              aria-hidden
+            />
+          </button>
+          {termOpen && (
+            <div
+              role="menu"
+              className="absolute right-0 top-full z-20 mt-1 w-44 overflow-hidden rounded-lg border border-ink-200 bg-white shadow-card animate-scale-in"
+            >
+              {TERMS.map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  role="menuitem"
+                  onClick={() => onSelectTerm(t)}
+                  className={
+                    "flex w-full items-center justify-between px-3 py-2 text-left text-sm transition hover:bg-ink-50 " +
+                    (term === t
+                      ? "font-semibold text-brand"
+                      : "text-ink-700")
+                  }
+                >
+                  {t}
+                  {term === t && (
+                    <Check className="size-3.5 text-brand" aria-hidden />
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         <button
           type="button"
-          className="inline-flex h-9 items-center gap-2 rounded-lg border border-ink-200 bg-white px-3 text-sm font-medium text-ink-700 shadow-card transition hover:bg-ink-50"
-        >
-          Fall 2024
-          <ChevronDown className="size-4 text-ink-500" aria-hidden />
-        </button>
-        <button
-          type="button"
+          onClick={onDownload}
           className="inline-flex h-9 items-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-white shadow-card transition hover:bg-brand-600"
         >
           <Download className="size-4" aria-hidden />
-          Download PDF
+          Download Report
         </button>
       </div>
     </header>
@@ -217,9 +321,12 @@ function TeacherRemarksCard() {
     <section className="rounded-2xl border border-ink-200 bg-white p-5 shadow-card">
       <header className="flex items-center justify-between">
         <h3 className="text-base font-bold text-ink-900">Teacher Remarks</h3>
-        <a href="#" className="text-xs font-semibold text-brand hover:underline">
+        <Link
+          to="/student/grades"
+          className="text-xs font-semibold text-brand hover:underline"
+        >
           View All
-        </a>
+        </Link>
       </header>
       <ul className="mt-4 space-y-4">
         {remarks.map((r) => (
@@ -259,7 +366,13 @@ function TeacherRemarksCard() {
 
 /* ------------------------ Encouragement banner ------------------------ */
 
-function EncouragementBanner() {
+function EncouragementBanner({
+  booking,
+  onBook,
+}: {
+  booking: "idle" | "booking" | "booked";
+  onBook: () => void;
+}) {
   return (
     <section
       className="mt-5 flex flex-wrap items-center justify-between gap-4 overflow-hidden rounded-2xl p-6 text-white shadow-card"
@@ -279,10 +392,23 @@ function EncouragementBanner() {
       </div>
       <button
         type="button"
-        className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-ink-900 shadow-card transition hover:bg-ink-50"
+        onClick={onBook}
+        disabled={booking !== "idle"}
+        className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-ink-900 shadow-card transition hover:bg-ink-50 disabled:cursor-default disabled:opacity-90"
       >
-        <CalendarDays className="size-4" aria-hidden />
-        Book a 1-on-1 Mentoring Session
+        {booking === "booked" ? (
+          <>
+            <Check className="size-4 text-emerald-600" aria-hidden />
+            Session Booked
+          </>
+        ) : booking === "booking" ? (
+          "Booking…"
+        ) : (
+          <>
+            <CalendarDays className="size-4" aria-hidden />
+            Book a 1-on-1 Mentoring Session
+          </>
+        )}
       </button>
     </section>
   );

@@ -12,7 +12,10 @@ import {
   MoreVertical,
   Download,
   Play,
+  X,
+  Check,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Sidebar } from "../components/Sidebar";
 import { Topbar } from "../components/Topbar";
 import {
@@ -31,11 +34,42 @@ import {
  * Load More.
  * Data comes from `resourcesData.ts` fetchers; swap with real API later.
  */
+type ViewerItem = { title: string; kind: ResourceKind };
+
+const PAGE_SIZE = 8;
+
 export default function ResourcesPage() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [recent, setRecent] = useState<RecentItem[]>([]);
   const [materials, setMaterials] = useState<Material[]>([]);
   const [activeSubject, setActiveSubject] = useState<string | null>(null);
+  const [filterType, setFilterType] = useState<string>("All Types");
+  const [filterDate, setFilterDate] = useState<string>("Any Time");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [viewer, setViewer] = useState<ViewerItem | null>(null);
+  const [requestSent, setRequestSent] = useState(false);
+
+  /** Triggers a real text-blob download named after the material. */
+  function downloadMaterial(title: string) {
+    const safe = title.replace(/[^a-z0-9]+/gi, "-").toLowerCase();
+    const blob = new Blob(
+      [`Resource: ${title}\n(downloaded from SOLS Library)`],
+      { type: "text/plain" },
+    );
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${safe}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function handleRequestMaterial() {
+    setRequestSent(true);
+    setTimeout(() => setRequestSent(false), 2400);
+  }
 
   useEffect(() => {
     let active = true;
@@ -54,11 +88,30 @@ export default function ResourcesPage() {
     };
   }, []);
 
-  const filteredMaterials = activeSubject
-    ? materials.filter(
-        (m) => m.subject.toLowerCase() === activeSubject.toLowerCase(),
-      )
-    : materials;
+  // Apply all three filters (subject chip, type dropdown, date dropdown).
+  const filteredMaterials = materials
+    .filter((m) => {
+      if (!activeSubject) return true;
+      return m.subject.toLowerCase() === activeSubject.toLowerCase();
+    })
+    .filter((m) => {
+      if (filterType === "All Types") return true;
+      const map: Record<string, ResourceKind> = {
+        PDF: "pdf",
+        Video: "video",
+        Document: "doc",
+        Archive: "archive",
+      };
+      return m.kind === map[filterType];
+    });
+
+  // Filter applied (date is mock-only) — take only `visibleCount` items.
+  const visibleMaterials = filteredMaterials.slice(0, visibleCount);
+
+  // Reset pagination whenever a filter changes.
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [activeSubject, filterType, filterDate]);
 
   return (
     <div className="flex min-h-screen bg-surface-page font-sans text-ink-900">
@@ -73,9 +126,9 @@ export default function ResourcesPage() {
             aria-label="Breadcrumb"
             className="flex items-center gap-1.5 text-sm text-ink-500"
           >
-            <a href="/student/dashboard" className="hover:text-ink-700">
+            <Link to="/student/dashboard" className="hover:text-ink-700">
               Home
-            </a>
+            </Link>
             <ChevronRight className="size-4" aria-hidden />
             <span className="text-ink-900">Resources Library</span>
           </nav>
@@ -92,10 +145,20 @@ export default function ResourcesPage() {
             </div>
             <button
               type="button"
+              onClick={handleRequestMaterial}
               className="inline-flex h-10 items-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-white shadow-card transition hover:bg-brand-600"
             >
-              <CloudUpload className="size-4" aria-hidden />
-              Request Material
+              {requestSent ? (
+                <>
+                  <Check className="size-4" aria-hidden />
+                  Request Sent
+                </>
+              ) : (
+                <>
+                  <CloudUpload className="size-4" aria-hidden />
+                  Request Material
+                </>
+              )}
             </button>
           </header>
 
@@ -123,7 +186,17 @@ export default function ResourcesPage() {
           </div>
 
           {/* Filter bar */}
-          <FilterBar onClear={() => setActiveSubject(null)} />
+          <FilterBar
+            type={filterType}
+            date={filterDate}
+            onTypeChange={setFilterType}
+            onDateChange={setFilterDate}
+            onClear={() => {
+              setActiveSubject(null);
+              setFilterType("All Types");
+              setFilterDate("Any Time");
+            }}
+          />
 
           {/* Recently Viewed */}
           <section className="mt-7">
@@ -132,8 +205,16 @@ export default function ResourcesPage() {
               Recently Viewed
             </h2>
             <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {recent.map((r) => (
-                <RecentCard key={r.id} item={r} />
+              {recent.map((r, i) => (
+                <button
+                  key={r.id}
+                  type="button"
+                  onClick={() => setViewer({ title: r.title, kind: r.kind })}
+                  style={{ animationDelay: `${i * 60}ms` }}
+                  className="text-left animate-fade-in-up"
+                >
+                  <RecentCard item={r} />
+                </button>
               ))}
             </div>
           </section>
@@ -143,25 +224,57 @@ export default function ResourcesPage() {
             <header className="flex items-center justify-between">
               <h2 className="text-sm font-bold text-ink-900">All Materials</h2>
               <span className="text-xs text-ink-500">
-                {materials.length === 0 ? "—" : `${materials.length * 31} Items`}
+                {filteredMaterials.length === 0
+                  ? "—"
+                  : `${filteredMaterials.length} of ${materials.length} items`}
               </span>
             </header>
             <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {filteredMaterials.map((m) => (
-                <MaterialCard key={m.id} material={m} />
+              {visibleMaterials.map((m, i) => (
+                <div
+                  key={m.id}
+                  style={{ animationDelay: `${i * 50}ms` }}
+                  className="animate-fade-in-up"
+                >
+                  <MaterialCard
+                    material={m}
+                    onView={() =>
+                      setViewer({ title: m.title, kind: m.kind })
+                    }
+                    onDownload={() => downloadMaterial(m.title)}
+                  />
+                </div>
               ))}
             </div>
+            {filteredMaterials.length === 0 && (
+              <div className="mt-6 rounded-2xl border border-dashed border-ink-200 bg-white p-10 text-center text-sm text-ink-500">
+                No materials match your filters.
+              </div>
+            )}
           </section>
 
           {/* Load More */}
-          <div className="mt-8 flex justify-center">
-            <button
-              type="button"
-              className="rounded-full border border-ink-200 bg-white px-6 py-2.5 text-sm font-semibold text-ink-700 shadow-card transition hover:bg-ink-50"
-            >
-              Load More Resources
-            </button>
-          </div>
+          {visibleCount < filteredMaterials.length && (
+            <div className="mt-8 flex justify-center">
+              <button
+                type="button"
+                onClick={() =>
+                  setVisibleCount((c) => c + PAGE_SIZE)
+                }
+                className="rounded-full border border-ink-200 bg-white px-6 py-2.5 text-sm font-semibold text-ink-700 shadow-card transition hover:bg-ink-50"
+              >
+                Load More Resources
+              </button>
+            </div>
+          )}
+
+          {viewer && (
+            <ResourceViewerModal
+              item={viewer}
+              onClose={() => setViewer(null)}
+              onDownload={() => downloadMaterial(viewer.title)}
+            />
+          )}
         </main>
       </div>
     </div>
@@ -201,22 +314,31 @@ function SubjectChip({
 
 /* ------------------------------- Filter bar ------------------------------ */
 
-function FilterBar({ onClear }: { onClear: () => void }) {
+function FilterBar({
+  type,
+  date,
+  onTypeChange,
+  onDateChange,
+  onClear,
+}: {
+  type: string;
+  date: string;
+  onTypeChange: (v: string) => void;
+  onDateChange: (v: string) => void;
+  onClear: () => void;
+}) {
   return (
-    <section className="mt-4 grid grid-cols-1 gap-3 rounded-2xl border border-ink-200 bg-white p-4 shadow-card md:grid-cols-[1fr_1fr_1fr_auto]">
-      <FilterSelect
-        label="SUBJECT"
-        placeholder="All Subjects"
-        options={["All Subjects", "Mathematics", "Physics", "Literature"]}
-      />
+    <section className="mt-4 grid grid-cols-1 gap-3 rounded-2xl border border-ink-200 bg-white p-4 shadow-card md:grid-cols-[1fr_1fr_auto]">
       <FilterSelect
         label="RESOURCE TYPE"
-        placeholder="All Types"
+        value={type}
+        onChange={onTypeChange}
         options={["All Types", "PDF", "Video", "Document", "Archive"]}
       />
       <FilterSelect
         label="DATE ADDED"
-        placeholder="Any Time"
+        value={date}
+        onChange={onDateChange}
         options={["Any Time", "Last 7 days", "Last 30 days", "This semester"]}
       />
       <button
@@ -233,11 +355,13 @@ function FilterBar({ onClear }: { onClear: () => void }) {
 
 function FilterSelect({
   label,
-  placeholder,
+  value,
+  onChange,
   options,
 }: {
   label: string;
-  placeholder: string;
+  value: string;
+  onChange: (v: string) => void;
   options: string[];
 }) {
   return (
@@ -247,7 +371,8 @@ function FilterSelect({
       </span>
       <div className="relative">
         <select
-          defaultValue={placeholder}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
           className="h-10 w-full appearance-none rounded-lg border border-ink-200 bg-white pl-3 pr-9 text-sm text-ink-900 outline-none transition hover:bg-ink-50 focus:border-brand focus:ring-2 focus:ring-brand/20"
         >
           {options.map((o) => (
@@ -260,6 +385,87 @@ function FilterSelect({
         />
       </div>
     </label>
+  );
+}
+
+/* ----------------------------- Viewer modal ---------------------------- */
+
+function ResourceViewerModal({
+  item,
+  onClose,
+  onDownload,
+}: {
+  item: ViewerItem;
+  onClose: () => void;
+  onDownload: () => void;
+}) {
+  const isVideo = item.kind === "video";
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/60 p-4 animate-fade-in"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-2xl overflow-hidden rounded-2xl border border-ink-200 bg-white shadow-card animate-scale-in"
+      >
+        <header className="flex items-center justify-between border-b border-ink-100 px-5 py-3">
+          <h2 className="text-sm font-bold text-ink-900">{item.title}</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close viewer"
+            className="rounded-md p-1 text-ink-500 hover:bg-ink-100"
+          >
+            <X className="size-4" aria-hidden />
+          </button>
+        </header>
+
+        <div className="flex h-72 items-center justify-center bg-ink-900 text-white">
+          {isVideo ? (
+            <div className="text-center">
+              <PlayCircle
+                className="mx-auto size-16 text-white/80"
+                aria-hidden
+              />
+              <p className="mt-2 text-sm text-white/70">
+                Video preview placeholder
+              </p>
+            </div>
+          ) : (
+            <div className="text-center">
+              <FileText
+                className="mx-auto size-16 text-white/70"
+                aria-hidden
+              />
+              <p className="mt-2 text-sm text-white/70">
+                Document preview placeholder
+              </p>
+            </div>
+          )}
+        </div>
+
+        <footer className="flex items-center justify-end gap-2 px-5 py-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg border border-ink-200 bg-white px-3 py-1.5 text-xs font-semibold text-ink-700 transition hover:bg-ink-50"
+          >
+            Close
+          </button>
+          <button
+            type="button"
+            onClick={onDownload}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-brand-600"
+          >
+            <Download className="size-3.5" aria-hidden />
+            Download
+          </button>
+        </footer>
+      </div>
+    </div>
   );
 }
 
@@ -332,16 +538,26 @@ function RecentCard({ item }: { item: RecentItem }) {
 
 /* ----------------------------- Material card ----------------------------- */
 
-function MaterialCard({ material }: { material: Material }) {
+function MaterialCard({
+  material,
+  onView,
+  onDownload,
+}: {
+  material: Material;
+  onView: () => void;
+  onDownload: () => void;
+}) {
   return (
-    <article className="flex flex-col rounded-2xl border border-ink-200 bg-white p-4 shadow-card transition hover:-translate-y-0.5 hover:shadow-md">
+    <article className="flex flex-col rounded-2xl border border-ink-200 bg-white p-4 shadow-card transition hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md">
       {/* Top: icon tile + kebab */}
       <div className="flex items-start justify-between">
         <ResourceIcon kind={material.kind} large />
         <button
           type="button"
           aria-label="More"
-          className="rounded-md p-1 text-ink-400 hover:bg-ink-100"
+          onClick={onDownload}
+          title="Download"
+          className="rounded-md p-1 text-ink-400 transition hover:bg-ink-100 hover:text-ink-700"
         >
           <MoreVertical className="size-4" aria-hidden />
         </button>
@@ -369,12 +585,17 @@ function MaterialCard({ material }: { material: Material }) {
         {material.hasView && (
           <button
             type="button"
+            onClick={onView}
             className="inline-flex h-9 flex-1 items-center justify-center rounded-lg border border-ink-200 bg-white text-xs font-semibold text-ink-700 transition hover:bg-ink-50"
           >
             View
           </button>
         )}
-        <PrimaryActionButton action={material.primaryAction} />
+        <PrimaryActionButton
+          action={material.primaryAction}
+          onView={onView}
+          onDownload={onDownload}
+        />
       </div>
     </article>
   );
@@ -382,35 +603,39 @@ function MaterialCard({ material }: { material: Material }) {
 
 function PrimaryActionButton({
   action,
+  onView,
+  onDownload,
 }: {
   action: Material["primaryAction"];
+  onView: () => void;
+  onDownload: () => void;
 }) {
   const base =
     "inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg bg-brand text-xs font-semibold text-white transition hover:bg-brand-600";
   switch (action) {
     case "view":
       return (
-        <button type="button" className={base}>
+        <button type="button" onClick={onView} className={base}>
           View
         </button>
       );
     case "watch":
       return (
-        <button type="button" className={base}>
+        <button type="button" onClick={onView} className={base}>
           <Play className="size-3.5 fill-white" aria-hidden />
           Watch Video
         </button>
       );
     case "download":
       return (
-        <button type="button" className={base}>
+        <button type="button" onClick={onDownload} className={base}>
           <Download className="size-3.5" aria-hidden />
           Download
         </button>
       );
     case "downloadAll":
       return (
-        <button type="button" className={base}>
+        <button type="button" onClick={onDownload} className={base}>
           <Download className="size-3.5" aria-hidden />
           Download All
         </button>

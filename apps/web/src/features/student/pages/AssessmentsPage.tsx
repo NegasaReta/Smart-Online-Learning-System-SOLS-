@@ -9,6 +9,7 @@ import {
   MonitorOff,
   Timer,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Sidebar } from "../components/Sidebar";
 import { Topbar } from "../components/Topbar";
 import {
@@ -144,7 +145,10 @@ function Section({
 
 function AssessmentRow({ a }: { a: Assessment }) {
   return (
-    <article className="flex flex-wrap items-center gap-4 rounded-2xl border border-ink-200 bg-white p-4 shadow-card transition hover:shadow-md">
+    <Link
+      to={`/student/assessments/${a.id}`}
+      className="flex flex-wrap items-center gap-4 rounded-2xl border border-ink-200 bg-white p-4 shadow-card transition hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md animate-fade-in-up"
+    >
       {/* Subject icon tile */}
       <span
         className={`flex size-12 shrink-0 items-center justify-center rounded-xl ${a.iconClass}`}
@@ -169,9 +173,9 @@ function AssessmentRow({ a }: { a: Assessment }) {
       {/* Status pill + primary action */}
       <div className="ml-auto flex items-center gap-3">
         <StatusPill status={a.status} />
-        <PrimaryButton status={a.status} />
+        <PrimaryButton status={a.status} id={a.id} />
       </div>
-    </article>
+    </Link>
   );
 }
 
@@ -199,34 +203,35 @@ function StatusPill({ status }: { status: AssessmentStatus }) {
   }
 }
 
-function PrimaryButton({ status }: { status: AssessmentStatus }) {
+function PrimaryButton({
+  status,
+  id,
+}: {
+  status: AssessmentStatus;
+  id: string;
+}) {
+  // Use a span instead of nested Link/button — the parent row is the Link.
   switch (status) {
     case "ongoing":
       return (
-        <button
-          type="button"
-          className="inline-flex h-9 items-center rounded-lg bg-brand px-4 text-xs font-semibold text-white shadow-card transition hover:bg-brand-600"
-        >
+        <span className="inline-flex h-9 items-center rounded-lg bg-brand px-4 text-xs font-semibold text-white shadow-card transition group-hover:bg-brand-600">
           Start Assessment
-        </button>
+        </span>
       );
     case "upcoming":
       return (
-        <button
-          type="button"
-          className="inline-flex h-9 items-center rounded-lg border border-ink-200 bg-white px-4 text-xs font-semibold text-ink-700 transition hover:bg-ink-50"
+        <span
+          className="inline-flex h-9 items-center rounded-lg border border-ink-200 bg-white px-4 text-xs font-semibold text-ink-700 transition"
+          data-id={id}
         >
           View Details
-        </button>
+        </span>
       );
     case "completed":
       return (
-        <button
-          type="button"
-          className="inline-flex h-9 items-center rounded-lg border border-ink-200 bg-white px-4 text-xs font-semibold text-ink-700 transition hover:bg-ink-50"
-        >
+        <span className="inline-flex h-9 items-center rounded-lg border border-ink-200 bg-white px-4 text-xs font-semibold text-ink-700 transition">
           View Results
-        </button>
+        </span>
       );
   }
 }
