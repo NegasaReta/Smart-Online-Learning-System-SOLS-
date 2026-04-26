@@ -1,0 +1,7 @@
+{
+  "name": "smart-online-learning-system-sols",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ]
+}
