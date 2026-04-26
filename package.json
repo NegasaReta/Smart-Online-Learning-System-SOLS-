@@ -1,8 +1,9 @@
 {
-    "name": "sols-monorepo",
-    "version": "1.0.0",
-    "private": true,
-    "workspaces": [
-        "apps/*"
-    ]
+  "name": "api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node index.js"
+  }
 }
