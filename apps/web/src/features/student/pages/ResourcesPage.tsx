@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   ChevronRight,
   ChevronDown,
@@ -48,6 +49,14 @@ export default function ResourcesPage() {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [viewer, setViewer] = useState<ViewerItem | null>(null);
   const [requestSent, setRequestSent] = useState(false);
+  const [searchParams] = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") ?? "");
+
+  // Sync URL ?q= into the local search state on first render.
+  useEffect(() => {
+    const q = searchParams.get("q");
+    if (q) setSearchQuery(q);
+  }, [searchParams]);
 
   /** Triggers a real text-blob download named after the material. */
   function downloadMaterial(title: string) {
@@ -88,7 +97,7 @@ export default function ResourcesPage() {
     };
   }, []);
 
-  // Apply all three filters (subject chip, type dropdown, date dropdown).
+  // Apply all filters: subject chip, type dropdown, date dropdown, search query.
   const filteredMaterials = materials
     .filter((m) => {
       if (!activeSubject) return true;
@@ -103,6 +112,11 @@ export default function ResourcesPage() {
         Archive: "archive",
       };
       return m.kind === map[filterType];
+    })
+    .filter((m) => {
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase();
+      return m.title.toLowerCase().includes(q) || m.subject.toLowerCase().includes(q);
     });
 
   // Filter applied (date is mock-only) — take only `visibleCount` items.
@@ -189,12 +203,15 @@ export default function ResourcesPage() {
           <FilterBar
             type={filterType}
             date={filterDate}
+            search={searchQuery}
             onTypeChange={setFilterType}
             onDateChange={setFilterDate}
+            onSearchChange={setSearchQuery}
             onClear={() => {
               setActiveSubject(null);
               setFilterType("All Types");
               setFilterDate("Any Time");
+              setSearchQuery("");
             }}
           />
 
@@ -317,18 +334,32 @@ function SubjectChip({
 function FilterBar({
   type,
   date,
+  search,
   onTypeChange,
   onDateChange,
+  onSearchChange,
   onClear,
 }: {
   type: string;
   date: string;
+  search: string;
   onTypeChange: (v: string) => void;
   onDateChange: (v: string) => void;
+  onSearchChange: (v: string) => void;
   onClear: () => void;
 }) {
   return (
-    <section className="mt-4 grid grid-cols-1 gap-3 rounded-2xl border border-ink-200 bg-white p-4 shadow-card md:grid-cols-[1fr_1fr_auto]">
+    <section className="mt-4 grid grid-cols-1 gap-3 rounded-2xl border border-ink-200 bg-white p-4 shadow-card md:grid-cols-[1fr_1fr_1fr_auto]">
+      <label className="flex flex-col gap-1.5">
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-ink-500">SEARCH</span>
+        <input
+          type="search"
+          value={search}
+          onChange={(e) => onSearchChange(e.target.value)}
+          placeholder="Search materials…"
+          className="h-10 rounded-xl border border-ink-200 bg-ink-50 px-3 text-sm outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/20"
+        />
+      </label>
       <FilterSelect
         label="RESOURCE TYPE"
         value={type}

@@ -1,4 +1,4 @@
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, BookOpen, ClipboardList, Star, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useT } from "@/i18n/I18nProvider";
 import { Sidebar } from "../components/Sidebar";
@@ -11,6 +11,14 @@ import { RecentGradesCard } from "../components/RecentGradesCard";
 import { UpcomingTasksPanel } from "../components/UpcomingTasksPanel";
 import { EncouragementCard } from "../components/EncouragementCard";
 import { WeeklyStudyHoursChart } from "../components/WeeklyStudyHoursChart";
+
+const QUICK_ACTIONS = [
+  { label: "My Classes",   to: "/student/classes",     icon: BookOpen,      bg: "bg-brand/10",     text: "text-brand"        },
+  { label: "Assignments",  to: "/student/assignments",  icon: ClipboardList, bg: "bg-red-50",       text: "text-red-600"      },
+  { label: "Grades",       to: "/student/grades",       icon: Star,          bg: "bg-amber-50",     text: "text-amber-600"    },
+  { label: "Resources",    to: "/student/resources",    icon: FileText,      bg: "bg-emerald-50",   text: "text-emerald-600"  },
+  { label: "Schedule",     to: "/student/schedule",     icon: CalendarDays,  bg: "bg-violet-50",    text: "text-violet-600"   },
+];
 
 /**
  * StudentDashboardPage — the Grade 10 student dashboard.
@@ -49,7 +57,7 @@ export default function StudentDashboardPage() {
         <main className="mx-auto w-full max-w-[1200px] flex-1 px-8 pb-10 pt-6">
           {/* Welcome header */}
           <div
-            className="mb-6 flex items-start justify-between gap-4 animate-fade-in-up"
+            className="mb-4 flex items-start justify-between gap-4 animate-fade-in-up"
             style={{ animationDelay: "0ms" }}
           >
             <div>
@@ -59,7 +67,7 @@ export default function StudentDashboardPage() {
                 <span aria-hidden>👋</span>
               </h1>
               <p className="mt-1 text-sm text-ink-500">
-                {t("student.dueToday", { count: 2 })}
+                You have <span className="font-semibold text-red-600">2 assignments due</span> this week — keep it up!
               </p>
             </div>
             <Link
@@ -69,6 +77,25 @@ export default function StudentDashboardPage() {
               <CalendarDays className="size-4" aria-hidden />
               {t("common.viewSchedule")}
             </Link>
+          </div>
+
+          {/* Quick-action strip */}
+          <div
+            className="mb-6 flex flex-wrap gap-2 animate-fade-in-up"
+            style={{ animationDelay: "40ms" }}
+          >
+            {QUICK_ACTIONS.map((qa) => (
+              <Link
+                key={qa.label}
+                to={qa.to}
+                className={`inline-flex items-center gap-2 rounded-xl border border-ink-200 bg-white px-3.5 py-2 text-xs font-semibold shadow-card transition hover:shadow-md ${qa.text}`}
+              >
+                <span className={`flex size-5 items-center justify-center rounded-md ${qa.bg}`}>
+                  <qa.icon className="size-3.5" aria-hidden />
+                </span>
+                {qa.label}
+              </Link>
+            ))}
           </div>
 
           {/* Two-column content grid */}

@@ -11,7 +11,7 @@ import {
   Lightbulb,
 } from "lucide-react";
 import type { ComponentType, SVGProps } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, Link } from "react-router-dom";
 import { useT } from "@/i18n/I18nProvider";
 
 type NavItem = {
@@ -71,20 +71,20 @@ export function Sidebar() {
 
       {/* Footer links */}
       <div className="mt-auto flex flex-col gap-2">
-        <a
-          href="#"
+        <Link
+          to="/student/resources"
           className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-ink-700 transition hover:bg-ink-100"
         >
           <HelpCircle className="size-[18px]" aria-hidden />
           {t("sidebar.helpCenter")}
-        </a>
-        <a
-          href="/login"
+        </Link>
+        <Link
+          to="/login"
           className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-ink-700 transition hover:bg-ink-100"
         >
           <LogOut className="size-[18px]" aria-hidden />
           {t("sidebar.logout")}
-        </a>
+        </Link>
       </div>
     </aside>
   );

@@ -17,10 +17,29 @@ import SettingsSecurityPage from "@/features/student/pages/SettingsSecurityPage"
 import SettingsPreferencesPage from "@/features/student/pages/SettingsPreferencesPage";
 import SettingsAcademicPage from "@/features/student/pages/SettingsAcademicPage";
 import LandingPage from "@/features/landing/pages/LandingPage";
+import AdminDashboardPage from "@/features/admin/pages/AdminDashboardPage";
+import AdminStudentsPage from "@/features/admin/pages/AdminStudentsPage";
+import AdminTeachersPage from "@/features/admin/pages/AdminTeachersPage";
+import AdminParentsPage from "@/features/admin/pages/AdminParentsPage";
+import AdminCoursesPage from "@/features/admin/pages/AdminCoursesPage";
+import AdminCalendarPage from "@/features/admin/pages/AdminCalendarPage";
+import AdminTasksPage from "@/features/admin/pages/AdminTasksPage";
+import AdminReportsPage from "@/features/admin/pages/AdminReportsPage";
+import AdminUserManagementPage from "@/features/admin/pages/AdminUserManagementPage";
+import AdminAnalyticsPage from "@/features/admin/pages/AdminAnalyticsPage";
+import AdminAccountPage from "@/features/admin/pages/AdminAccountPage";
+import AdminAttendancePage from "@/features/admin/pages/AdminAttendancePage";
+import AdminExamsPage from "@/features/admin/pages/AdminExamsPage";
+import AdminMessagesPage from "@/features/admin/pages/AdminMessagesPage";
+import AdminAnnouncementsPage from "@/features/admin/pages/AdminAnnouncementsPage";
+import AdminEnrollmentsPage from "@/features/admin/pages/AdminEnrollmentsPage";
+import AdminManagePagesPage from "@/features/admin/pages/AdminManagePagesPage";
 
-// When Clerk isn't configured, auth routes redirect to the dashboard so the
-// preview works without any backend setup.
-const CLERK_ENABLED = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
+// When Clerk isn't configured, auth routes still render so the pages can be
+// previewed without a backend setup. Set VITE_AUTH_PREVIEW=false to disable.
+const CLERK_ENABLED =
+  Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY) ||
+  import.meta.env.VITE_AUTH_PREVIEW !== "false";
 
 export function AppRouter() {
   return (
@@ -80,6 +99,25 @@ export function AppRouter() {
           </div>
         }
       />
+      {/* Admin routes */}
+      <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+      <Route path="/admin/teachers" element={<AdminTeachersPage />} />
+      <Route path="/admin/parents" element={<AdminParentsPage />} />
+      <Route path="/admin/courses" element={<AdminCoursesPage />} />
+      <Route path="/admin/calendar" element={<AdminCalendarPage />} />
+      <Route path="/admin/tasks" element={<AdminTasksPage />} />
+      <Route path="/admin/students" element={<AdminStudentsPage />} />
+      <Route path="/admin/reports" element={<AdminReportsPage />} />
+      <Route path="/admin/users" element={<AdminUserManagementPage />} />
+      <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
+      <Route path="/admin/account" element={<AdminAccountPage />} />
+      <Route path="/admin/attendance" element={<AdminAttendancePage />} />
+      <Route path="/admin/exams" element={<AdminExamsPage />} />
+      <Route path="/admin/messages" element={<AdminMessagesPage />} />
+      <Route path="/admin/announcements" element={<AdminAnnouncementsPage />} />
+      <Route path="/admin/enrollments" element={<AdminEnrollmentsPage />} />
+      <Route path="/admin/manage-pages" element={<AdminManagePagesPage />} />
+
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
