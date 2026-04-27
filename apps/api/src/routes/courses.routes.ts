@@ -17,7 +17,7 @@ const router = Router();
 router.post(
   "/subject",
   authenticateJWT,
-  authorizeRoles("teacher"),
+  authorizeRoles("Teacher"),
   createCourseController
 );
 
@@ -25,7 +25,7 @@ router.post(
 router.get(
   "/subjects",
   authenticateJWT,
-  authorizeRoles("student", "teacher", "parent", "admin"),
+  authorizeRoles("Student", "Teacher", "Parent", "Admin"),
   getCoursesByGradeController
 );
 
@@ -33,7 +33,7 @@ router.get(
 router.get(
   "/my-courses",
   authenticateJWT,
-  authorizeRoles("teacher"),
+  authorizeRoles("Teacher"),
   getMyCourseController
 );
 
@@ -41,7 +41,7 @@ router.get(
 router.get(
   "/subjects/:id",
   authenticateJWT,
-  authorizeRoles("student", "teacher", "parent", "admin"),
+  authorizeRoles("Student", "Teacher", "Parent", "Admin"),
   getCourseByIdController
 );
 
@@ -49,7 +49,7 @@ router.get(
 router.put(
   "/subjects/:id",
   authenticateJWT,
-  authorizeRoles("teacher"),
+  authorizeRoles("Teacher"),
   updateCourseController
 );
 
@@ -57,7 +57,7 @@ router.put(
 router.delete(
   "/subjects/:id",
   authenticateJWT,
-  authorizeRoles("teacher"),
+  authorizeRoles("Teacher"),
   deleteCourseController
 );
 
@@ -65,7 +65,7 @@ router.delete(
 router.post(
   "/assign-teacher",
   authenticateJWT,
-  authorizeRoles("admin"),
+  authorizeRoles("Admin"),
   assignTeacherController
 );
 
