@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Globe, Check } from "lucide-react";
+import { ChevronDown, Globe } from "lucide-react";
 import { LOCALES, useT, type Locale } from "@/i18n/I18nProvider";
 
 /**
@@ -39,12 +39,13 @@ export function LanguageSwitcher() {
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={t("common.language")}
-        className="flex h-9 items-center gap-2 rounded-full border border-ink-200 bg-white px-3 text-sm font-medium text-ink-700 transition hover:bg-ink-50"
+        className="flex h-9 items-center gap-1.5 rounded-full border border-ink-200 bg-white px-2.5 text-sm font-medium text-ink-700 transition hover:bg-ink-50"
       >
         <Globe className="size-4 text-ink-500" aria-hidden />
-        {current.native}
+        <span>{current.flag}</span>
+        <span className="hidden sm:block">{current.code.toUpperCase()}</span>
         <ChevronDown
-          className={`size-4 text-ink-500 transition ${open ? "rotate-180" : ""}`}
+          className={`size-3.5 text-ink-500 transition ${open ? "rotate-180" : ""}`}
           aria-hidden
         />
       </button>
@@ -52,8 +53,13 @@ export function LanguageSwitcher() {
       {open && (
         <ul
           role="listbox"
-          className="absolute right-0 top-11 z-30 w-44 overflow-hidden rounded-xl border border-ink-200 bg-white py-1 shadow-card"
+          className="absolute right-0 top-11 z-30 w-48 overflow-hidden rounded-2xl border border-ink-200 bg-white py-1 shadow-xl"
         >
+          <li className="border-b border-ink-100 px-3 py-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-400">
+              {t("common.language")}
+            </p>
+          </li>
           {LOCALES.map((l) => {
             const active = l.code === locale;
             return (
@@ -64,15 +70,16 @@ export function LanguageSwitcher() {
                     setLocale(l.code as Locale);
                     setOpen(false);
                   }}
-                  className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm transition hover:bg-ink-50 ${
-                    active ? "text-brand" : "text-ink-700"
+                  className={`flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm transition hover:bg-brand/5 ${
+                    active ? "font-semibold text-brand" : "text-ink-700"
                   }`}
                 >
-                  <span>
-                    <span className="font-semibold">{l.native}</span>
-                    <span className="ml-2 text-xs text-ink-500">{l.label}</span>
+                  <span className="text-base">{l.flag}</span>
+                  <span className="flex-1">
+                    <span className="block leading-tight">{l.native}</span>
+                    <span className="text-xs text-ink-400">{l.label}</span>
                   </span>
-                  {active && <Check className="size-4" aria-hidden />}
+                  {active && <span className="size-1.5 rounded-full bg-brand" />}
                 </button>
               </li>
             );

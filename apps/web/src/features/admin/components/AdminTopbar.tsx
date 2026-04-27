@@ -1,6 +1,14 @@
-import { Search, Bell, MessageSquare, ChevronDown, Settings, UserCircle, LogOut, User, Shield } from "lucide-react";
+import { Search, Bell, MessageSquare, ChevronDown, Settings, UserCircle, LogOut, User, Shield, Globe } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+
+const LANGUAGES = [
+  { code: "en", label: "English",  flag: "🇬🇧" },
+  { code: "am", label: "Amharic",  flag: "🇪🇹" },
+  { code: "fr", label: "French",   flag: "🇫🇷" },
+  { code: "ar", label: "Arabic",   flag: "🇸🇦" },
+  { code: "zh", label: "Chinese",  flag: "🇨🇳" },
+];
 
 const NOTIFICATIONS = [
   { id: "n1", text: "New student registered: Amara Osei",        time: "2 min ago",  unread: true },
@@ -13,9 +21,12 @@ export function AdminTopbar() {
   const [query, setQuery] = useState("");
   const [showNotifs, setShowNotifs] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showLang, setShowLang] = useState(false);
+  const [activeLang, setActiveLang] = useState(LANGUAGES[0]);
   const [notifs, setNotifs] = useState(NOTIFICATIONS);
   const notifsRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
+  const langRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   const unreadCount = notifs.filter(n => n.unread).length;
@@ -25,6 +36,7 @@ export function AdminTopbar() {
     function handle(e: MouseEvent) {
       if (notifsRef.current && !notifsRef.current.contains(e.target as Node)) setShowNotifs(false);
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) setShowProfile(false);
+      if (langRef.current && !langRef.current.contains(e.target as Node)) setShowLang(false);
     }
     document.addEventListener("mousedown", handle);
     return () => document.removeEventListener("mousedown", handle);
@@ -115,6 +127,46 @@ export function AdminTopbar() {
             <MessageSquare className="size-5" />
             <span className="absolute right-1 top-1 size-2 rounded-full bg-violet-500 ring-2 ring-white" aria-hidden />
           </Link>
+        </div>
+
+        {/* Language selector */}
+        <div className="relative" ref={langRef}>
+          <button
+            type="button"
+            aria-label="Language"
+            onClick={() => { setShowLang(o => !o); setShowProfile(false); setShowNotifs(false); }}
+            className="flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-ink-700 transition hover:bg-ink-50"
+          >
+            <Globe className="size-4 text-ink-400" />
+            <span>{activeLang.flag}</span>
+            <span className="hidden sm:block">{activeLang.code.toUpperCase()}</span>
+            <ChevronDown className={`size-3.5 text-ink-400 transition-transform ${showLang ? "rotate-180" : ""}`} aria-hidden />
+          </button>
+
+          {showLang && (
+            <div className="absolute right-0 top-11 z-30 w-44 overflow-hidden rounded-2xl border border-ink-200 bg-white shadow-xl animate-scale-in">
+              <p className="border-b border-ink-100 px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-ink-400">Language</p>
+              <ul className="py-1">
+                {LANGUAGES.map(lang => (
+                  <li key={lang.code}>
+                    <button
+                      type="button"
+                      onClick={() => { setActiveLang(lang); setShowLang(false); }}
+                      className={`flex w-full items-center gap-2.5 px-3 py-2 text-sm transition hover:bg-violet-50 ${
+                        activeLang.code === lang.code ? "font-semibold text-violet-700" : "text-ink-700"
+                      }`}
+                    >
+                      <span className="text-base">{lang.flag}</span>
+                      {lang.label}
+                      {activeLang.code === lang.code && (
+                        <span className="ml-auto size-1.5 rounded-full bg-violet-500" />
+                      )}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
 
         {/* Profile dropdown */}

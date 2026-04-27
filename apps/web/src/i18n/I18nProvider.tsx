@@ -13,10 +13,10 @@ import om from "./om.json";
 
 export type Locale = "en" | "am" | "om";
 
-export const LOCALES: { code: Locale; label: string; native: string }[] = [
-  { code: "en", label: "English", native: "English" },
-  { code: "am", label: "Amharic", native: "አማርኛ" },
-  { code: "om", label: "Afaan Oromo", native: "Afaan Oromoo" },
+export const LOCALES: { code: Locale; label: string; native: string; flag: string }[] = [
+  { code: "en", label: "English",     native: "English",      flag: "🇬🇧" },
+  { code: "am", label: "Amharic",     native: "አማርኛ",         flag: "🇪🇹" },
+  { code: "om", label: "Afaan Oromo", native: "Afaan Oromoo", flag: "🇪🇹" },
 ];
 
 type Dict = Record<string, unknown>;

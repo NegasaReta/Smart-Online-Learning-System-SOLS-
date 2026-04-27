@@ -17,6 +17,7 @@ import SettingsSecurityPage from "@/features/student/pages/SettingsSecurityPage"
 import SettingsPreferencesPage from "@/features/student/pages/SettingsPreferencesPage";
 import SettingsAcademicPage from "@/features/student/pages/SettingsAcademicPage";
 import LandingPage from "@/features/landing/pages/LandingPage";
+import CompleteProfilePage from "@/features/auth/pages/CompleteProfilePage";
 import AdminDashboardPage from "@/features/admin/pages/AdminDashboardPage";
 import AdminStudentsPage from "@/features/admin/pages/AdminStudentsPage";
 import AdminTeachersPage from "@/features/admin/pages/AdminTeachersPage";
@@ -45,26 +46,9 @@ export function AppRouter() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
-      <Route
-        path="/login"
-        element={
-          CLERK_ENABLED ? (
-            <LoginPage />
-          ) : (
-            <Navigate to="/student/dashboard" replace />
-          )
-        }
-      />
-      <Route
-        path="/register"
-        element={
-          CLERK_ENABLED ? (
-            <RegisterPage />
-          ) : (
-            <Navigate to="/student/dashboard" replace />
-          )
-        }
-      />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/complete-profile" element={<CompleteProfilePage />} />
       <Route path="/student/dashboard" element={<StudentDashboardPage />} />
       <Route path="/student/classes" element={<MyClassesPage />} />
       <Route path="/student/classes/:slug" element={<CourseDetailPage />} />
