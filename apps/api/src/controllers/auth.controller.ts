@@ -3,14 +3,19 @@ import * as AuthService from '../services/auth.service';
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { fullName, email, password, role } = req.body;
+    const { fullName, email, password, role, grade } = req.body;
 
     if (!fullName || !email || !password || !role) {
       res.status(400).json({ error: 'fullName, email, password, and role are required' });
       return;
     }
 
-    const user = await AuthService.registerUser(fullName, email, password, role);
+    if (role === 'student' && !grade) {
+      res.status(400).json({ error: 'grade is required for student role' });
+      return;
+    }
+
+    const user = await AuthService.registerUser(fullName, email, password, role, grade);
     res.status(201).json({ message: 'User registered successfully', user });
   } catch (error: any) {
     if (error.message === 'Email already exists') {

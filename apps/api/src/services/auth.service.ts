@@ -2,12 +2,12 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import * as UserModel from '../models/user.model';
 
-export const registerUser = async (fullName: string, email: string, passwordPlain: string, role: string) => {
+export const registerUser = async (fullName: string, email: string, passwordPlain: string, role: string, grade?: string) => {
   const existingUser = await UserModel.findUserByEmail(email);
   if (existingUser) throw new Error('Email already exists');
 
   const passwordHash = await bcrypt.hash(passwordPlain, 10);
-  const user = await UserModel.registerUser(fullName, email, passwordHash, role);
+  const user = await UserModel.registerUser(fullName, email, passwordHash, role, grade);
   return user;
 };
 

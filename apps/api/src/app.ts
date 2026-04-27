@@ -2,12 +2,14 @@ import 'dotenv/config';
 import express from 'express';
 import { authenticateJWT } from './middlewares/authenticateJWT';
 import authRoutes from './routes/auth.routes';
+import studentRoutes from './routes/student.routes';
 
 const app = express();
 app.use(express.json());
 
 app.use('/auth', authRoutes);
 app.use('/api', authRoutes);
+app.use('/student', studentRoutes);
 
 // A public route (No middleware)
 app.get('/public', (req, res) => {
