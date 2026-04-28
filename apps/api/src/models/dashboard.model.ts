@@ -1,80 +1,83 @@
 import { pool } from '../db/index';
 
-export const getProgressSummary = async (userId: string) => {
-  const quizzesRes = await pool.query('SELECT COUNT(*) FROM quiz_submissions WHERE user_id = $1', [userId]);
-  const assignmentsRes = await pool.query('SELECT COUNT(*) FROM assignment_submissions WHERE user_id = $1', [userId]);
-  const scoreRes = await pool.query('SELECT SUM(score) FROM quiz_submissions WHERE user_id = $1', [userId]);
-  
-  // Lesson completion can be approximated by video progress
-  const videosRes = await pool.query(`
+export const getProgressOverview = async (userId: string) => {
+  const result = await pool.query(`
     SELECT 
-      COUNT(*) as total_watched, 
-      SUM(CASE WHEN is_completed = true THEN 1 ELSE 0 END) as total_completed 
-    FROM video_progress WHERE user_id = $1
+      COALESCE(AVG(CASE WHEN is_completed = true THEN 100 ELSE 0 END), 0) as overall_percent
+    FROM lesson_completion
+    WHERE user_id = $1
   `, [userId]);
 
+  const overallPercent = Math.round(result.rows[0].overall_percent);
+
+  // Example segments based on categories or progress
+  const segments = [
+    { label: "Lessons", percent: overallPercent, color: "#4F46E5" },
+    { label: "Quizzes", percent: 0, color: "#10B981" }, // Placeholder for now
+    { label: "Assignments", percent: 0, color: "#F59E0B" } // Placeholder for now
+  ];
+
   return {
-    quizzesCompleted: parseInt(quizzesRes.rows[0].count, 10),
-    assignmentsSubmitted: parseInt(assignmentsRes.rows[0].count, 10),
-    totalScore: parseInt(scoreRes.rows[0].sum || '0', 10),
-    videosWatched: parseInt(videosRes.rows[0].total_watched, 10),
-    videosCompleted: parseInt(videosRes.rows[0].total_completed || '0', 10)
+    overallPercent,
+    segments
   };
 };
 
-export const getRecentActivity = async (userId: string) => {
+export const getCurrentCourses = async (userId: string) => {
   const result = await pool.query(`
-    SELECT 'quiz' as type, quizzes.title, quiz_submissions.submitted_at as date
-    FROM quiz_submissions 
-    JOIN quizzes ON quiz_submissions.quiz_id = quizzes.id
-    WHERE quiz_submissions.user_id = $1
-    UNION ALL
-    SELECT 'assignment' as type, assignments.title, assignment_submissions.submitted_at as date
-    FROM assignment_submissions
-    JOIN assignments ON assignment_submissions.assignment_id = assignments.id
-    WHERE assignment_submissions.user_id = $1
-    ORDER BY date DESC
-    LIMIT 5
+    SELECT 
+      s.id,
+      s.slug,
+      s.name as title,
+      s.name as subject,
+      s.instructor,
+      COALESCE(
+        (SELECT COUNT(*)::float / NULLIF((SELECT COUNT(*) FROM lessons WHERE subject_id = s.id), 0) * 100 
+         FROM lesson_completion lc 
+         JOIN lessons l ON lc.lesson_id = l.id
+         WHERE lc.user_id = $1 AND l.subject_id = s.id AND lc.is_completed = true), 0
+      ) as progress,
+      (SELECT title FROM lessons WHERE subject_id = s.id AND id NOT IN (SELECT lesson_id FROM lesson_completion WHERE user_id = $1 AND is_completed = true) ORDER BY order_no ASC LIMIT 1) as "nextLesson"
+    FROM subjects s
+    LIMIT 3
   `, [userId]);
-  return result.rows;
+  return result.rows.map(row => ({
+    ...row,
+    progress: Math.round(row.progress)
+  }));
 };
 
-export const getNotifications = async (userId: string) => {
-  const result = await pool.query('SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC', [userId]);
-  return result.rows;
-};
-
-export const markNotificationRead = async (userId: string, notificationId: string) => {
-  const result = await pool.query(
-    'UPDATE notifications SET is_read = true WHERE id = $1 AND user_id = $2 RETURNING *',
-    [notificationId, userId]
-  );
-  return result.rows[0];
-};
-
-export const linkParent = async (userId: string, parentEmail: string, parentName: string) => {
-  const parentInfo = { email: parentEmail, name: parentName };
-  const result = await pool.query(
-    'UPDATE student_profiles SET parent_info = $1 WHERE user_id = $2 RETURNING *',
-    [JSON.stringify(parentInfo), userId]
-  );
-  return result.rows[0];
-};
-
-export const getProfile = async (userId: string) => {
-  const result = await pool.query(`
-    SELECT u.full_name, u.email, sp.student_info, sp.parent_info, sp.school_preference 
-    FROM users u
-    LEFT JOIN student_profiles sp ON u.id = sp.user_id
-    WHERE u.id = $1
+export const getUpcomingTasks = async (userId: string) => {
+  const assignmentsRes = await pool.query(`
+    SELECT 
+      a.id,
+      a.title,
+      s.name as subject,
+      TO_CHAR(a.due_date, 'Mon DD, YYYY') as "dueLabel",
+      'assignment' as type,
+      CASE WHEN asub.id IS NULL THEN 'pending' ELSE 'in-progress' END as status
+    FROM assignments a
+    JOIN lessons l ON a.lesson_id = l.id
+    JOIN subjects s ON l.subject_id = s.id
+    LEFT JOIN assignment_submissions asub ON a.id = asub.assignment_id AND asub.user_id = $1
+    WHERE a.due_date > NOW() AND (asub.status IS NULL OR asub.status = 'pending')
+    ORDER BY a.due_date ASC
   `, [userId]);
-  return result.rows[0];
-};
 
-export const updateProfile = async (userId: string, studentInfo: any, schoolPreference: any) => {
-  const result = await pool.query(
-    'UPDATE student_profiles SET student_info = COALESCE($1, student_info), school_preference = COALESCE($2, school_preference) WHERE user_id = $3 RETURNING *',
-    [studentInfo ? JSON.stringify(studentInfo) : null, schoolPreference ? JSON.stringify(schoolPreference) : null, userId]
-  );
-  return result.rows[0];
+  const quizzesRes = await pool.query(`
+    SELECT 
+      q.id,
+      q.title,
+      s.name as subject,
+      'Today' as "dueLabel",
+      'quiz' as type,
+      'pending' as status
+    FROM quizzes q
+    JOIN lessons l ON q.lesson_id = l.id
+    JOIN subjects s ON l.subject_id = s.id
+    LEFT JOIN quiz_submissions qs ON q.id = qs.quiz_id AND qs.user_id = $1
+    WHERE qs.id IS NULL
+  `, [userId]);
+
+  return [...assignmentsRes.rows, ...quizzesRes.rows];
 };

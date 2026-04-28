@@ -3,13 +3,16 @@ import express from 'express';
 import { authenticateJWT } from './middlewares/authenticateJWT';
 import authRoutes from './routes/auth.routes';
 import studentRoutes from './routes/student.routes';
+import { initDb } from './db/index';
+
+initDb();
 
 const app = express();
 app.use(express.json());
 
 app.use('/auth', authRoutes);
 app.use('/api', authRoutes);
-app.use('/student', studentRoutes);
+app.use('/api/student', studentRoutes);
 
 // A public route (No middleware)
 app.get('/public', (req, res) => {

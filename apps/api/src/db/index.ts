@@ -19,18 +19,17 @@ export const initDb = async () => {
         full_name VARCHAR(255) NOT NULL,
         email VARCHAR(255) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
-        role VARCHAR(50) NOT NULL
+        role VARCHAR(50) NOT NULL,
+        grade_level VARCHAR(50)
       );
 
-      -- Update any existing users (if testing) to have a default full_name if column was missing
-      DO $$
-      BEGIN
-        BEGIN
-          ALTER TABLE users ADD COLUMN full_name VARCHAR(255) NOT NULL DEFAULT 'Unknown';
-        EXCEPTION
-          WHEN duplicate_column THEN null;
-        END;
-      END $$;
+      CREATE TABLE IF NOT EXISTS parent_student_links (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        parent_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        student_email VARCHAR(255) NOT NULL,
+        student_id UUID REFERENCES users(id) ON DELETE SET NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
 
       CREATE TABLE IF NOT EXISTS student_profiles (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -43,16 +42,35 @@ export const initDb = async () => {
       CREATE TABLE IF NOT EXISTS subjects (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         name VARCHAR(255) NOT NULL,
+        slug VARCHAR(255) UNIQUE,
         description TEXT,
-        grade VARCHAR(50) NOT NULL
+        grade VARCHAR(50) NOT NULL,
+        instructor VARCHAR(255)
+      );
+
+      CREATE TABLE IF NOT EXISTS modules (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        subject_id UUID REFERENCES subjects(id) ON DELETE CASCADE,
+        title VARCHAR(255) NOT NULL,
+        order_no INTEGER NOT NULL
       );
 
       CREATE TABLE IF NOT EXISTS lessons (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         subject_id UUID REFERENCES subjects(id) ON DELETE CASCADE,
+        module_id UUID REFERENCES modules(id) ON DELETE SET NULL,
         title VARCHAR(255) NOT NULL,
         description TEXT,
         order_no INTEGER NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS lesson_completion (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        lesson_id UUID REFERENCES lessons(id) ON DELETE CASCADE,
+        is_completed BOOLEAN DEFAULT false,
+        completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, lesson_id)
       );
 
       CREATE TABLE IF NOT EXISTS videos (
@@ -68,6 +86,7 @@ export const initDb = async () => {
         title VARCHAR(255) NOT NULL,
         url TEXT NOT NULL
       );
+
       CREATE TABLE IF NOT EXISTS quizzes (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         lesson_id UUID REFERENCES lessons(id) ON DELETE CASCADE,
@@ -106,6 +125,7 @@ export const initDb = async () => {
         lesson_id UUID REFERENCES lessons(id) ON DELETE CASCADE,
         title VARCHAR(255) NOT NULL,
         description TEXT,
+        requirements TEXT[],
         due_date TIMESTAMP
       );
 
@@ -113,8 +133,10 @@ export const initDb = async () => {
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         user_id UUID REFERENCES users(id) ON DELETE CASCADE,
         assignment_id UUID REFERENCES assignments(id) ON DELETE CASCADE,
-        content TEXT,
         file_url TEXT,
+        status VARCHAR(50) DEFAULT 'pending',
+        score INTEGER,
+        feedback TEXT,
         submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
@@ -127,6 +149,7 @@ export const initDb = async () => {
         last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(user_id, video_id)
       );
+
       CREATE TABLE IF NOT EXISTS notifications (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         user_id UUID REFERENCES users(id) ON DELETE CASCADE,
@@ -134,6 +157,151 @@ export const initDb = async () => {
         is_read BOOLEAN DEFAULT false,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+
+      CREATE TABLE IF NOT EXISTS assessments (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        subject_id UUID REFERENCES subjects(id) ON DELETE CASCADE,
+        title VARCHAR(255) NOT NULL,
+        duration_minutes INTEGER NOT NULL,
+        scheduled_for TIMESTAMP NOT NULL,
+        instructions TEXT,
+        status VARCHAR(50) DEFAULT 'upcoming'
+      );
+
+      CREATE TABLE IF NOT EXISTS assessment_questions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        assessment_id UUID REFERENCES assessments(id) ON DELETE CASCADE,
+        prompt TEXT NOT NULL,
+        options JSONB NOT NULL,
+        correct_index INTEGER NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS assessment_submissions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        assessment_id UUID REFERENCES assessments(id) ON DELETE CASCADE,
+        score INTEGER,
+        correct_count INTEGER,
+        total_questions INTEGER,
+        time_taken_seconds INTEGER,
+        submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS assessment_answers (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        submission_id UUID REFERENCES assessment_submissions(id) ON DELETE CASCADE,
+        question_id UUID REFERENCES assessment_questions(id) ON DELETE CASCADE,
+        selected_index INTEGER NOT NULL,
+        is_correct BOOLEAN NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS resources (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        subject_id UUID REFERENCES subjects(id) ON DELETE CASCADE,
+        title VARCHAR(255) NOT NULL,
+        kind VARCHAR(50) NOT NULL,
+        size VARCHAR(50),
+        duration VARCHAR(50),
+        download_url TEXT,
+        view_url TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS resource_views (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        resource_id UUID REFERENCES resources(id) ON DELETE CASCADE,
+        viewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        progress INTEGER DEFAULT 0
+      );
+
+      CREATE TABLE IF NOT EXISTS resource_requests (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        title VARCHAR(255) NOT NULL,
+        subject VARCHAR(255) NOT NULL,
+        description TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS events (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        title VARCHAR(255) NOT NULL,
+        start_time TIMESTAMP NOT NULL,
+        end_time TIMESTAMP NOT NULL,
+        type VARCHAR(50) NOT NULL,
+        location TEXT,
+        description TEXT,
+        color_class VARCHAR(50)
+      );
+
+      -- Migrations for existing tables
+      DO $$
+      BEGIN
+        -- Add grade_level to users
+        BEGIN
+          ALTER TABLE users ADD COLUMN grade_level VARCHAR(50);
+        EXCEPTION
+          WHEN duplicate_column THEN null;
+        END;
+
+        -- Add full_name to users
+        BEGIN
+          ALTER TABLE users ADD COLUMN full_name VARCHAR(255);
+        EXCEPTION
+          WHEN duplicate_column THEN null;
+        END;
+
+        -- Add slug to subjects
+        BEGIN
+          ALTER TABLE subjects ADD COLUMN slug VARCHAR(255) UNIQUE;
+        EXCEPTION
+          WHEN duplicate_column THEN null;
+        END;
+
+        -- Add instructor to subjects
+        BEGIN
+          ALTER TABLE subjects ADD COLUMN instructor VARCHAR(255);
+        EXCEPTION
+          WHEN duplicate_column THEN null;
+        END;
+
+        -- Add module_id to lessons
+        BEGIN
+          ALTER TABLE lessons ADD COLUMN module_id UUID REFERENCES modules(id) ON DELETE SET NULL;
+        EXCEPTION
+          WHEN duplicate_column THEN null;
+        END;
+
+        -- Add status to assignment_submissions
+        BEGIN
+          ALTER TABLE assignment_submissions ADD COLUMN status VARCHAR(50) DEFAULT 'pending';
+        EXCEPTION
+          WHEN duplicate_column THEN null;
+        END;
+
+        -- Add score to assignment_submissions
+        BEGIN
+          ALTER TABLE assignment_submissions ADD COLUMN score INTEGER;
+        EXCEPTION
+          WHEN duplicate_column THEN null;
+        END;
+
+        -- Add feedback to assignment_submissions
+        BEGIN
+          ALTER TABLE assignment_submissions ADD COLUMN feedback TEXT;
+        EXCEPTION
+          WHEN duplicate_column THEN null;
+        END;
+
+        -- Add requirements to assignments
+        BEGIN
+          ALTER TABLE assignments ADD COLUMN requirements TEXT[];
+        EXCEPTION
+          WHEN duplicate_column THEN null;
+        END;
+      END $$;
     `);
     console.log("Database initialized successfully!");
   } catch (error) {
@@ -141,4 +309,4 @@ export const initDb = async () => {
   }
 };
 
-initDb();
+// initDb();

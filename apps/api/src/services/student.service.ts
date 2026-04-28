@@ -1,73 +1,58 @@
-import * as StudentModel from '../models/student.model';
+import * as CourseModel from '../models/course.model';
+import * as LessonModel from '../models/lesson.model';
+import * as DashboardModel from '../models/dashboard.model';
+import * as AssignmentModel from '../models/assignment.model';
+import * as GradeModel from '../models/grade.model';
 
-export const getSubjects = async (userId: string) => {
-  const grade = await StudentModel.getStudentGrade(userId);
-  if (!grade) {
-    throw new Error('Grade not found for student');
-  }
-  return await StudentModel.getSubjectsByGrade(grade);
+// Course Services
+export const getClasses = async (userId: string) => {
+  return await CourseModel.getAllCourses(userId);
 };
 
-export const getLessons = async (userId: string, subjectId: string) => {
-  const grade = await StudentModel.getStudentGrade(userId);
-  if (!grade) {
-    throw new Error('Grade not found for student');
-  }
-
-  const subject = await StudentModel.getSubjectById(subjectId);
-  if (!subject) {
-    throw new Error('Subject not found');
-  }
-
-  if (subject.grade !== grade) {
-    throw new Error('Unauthorized access to subject from another grade');
-  }
-
-  return await StudentModel.getLessonsBySubjectId(subjectId);
+export const getCourseDetails = async (slug: string, userId: string) => {
+  return await CourseModel.getCourseBySlug(slug, userId);
 };
 
-export const getVideos = async (userId: string, lessonId: string) => {
-  const grade = await StudentModel.getStudentGrade(userId);
-  if (!grade) {
-    throw new Error('Grade not found for student');
-  }
-
-  const lesson = await StudentModel.getLessonById(lessonId);
-  if (!lesson) {
-    throw new Error('Lesson not found');
-  }
-
-  const subject = await StudentModel.getSubjectById(lesson.subject_id);
-  if (!subject) {
-    throw new Error('Subject not found');
-  }
-
-  if (subject.grade !== grade) {
-    throw new Error('Unauthorized access to materials from another grade');
-  }
-
-  return await StudentModel.getVideosByLessonId(lessonId);
+// Dashboard Services
+export const getProgressOverview = async (userId: string) => {
+  return await DashboardModel.getProgressOverview(userId);
 };
 
-export const getPdfs = async (userId: string, lessonId: string) => {
-  const grade = await StudentModel.getStudentGrade(userId);
-  if (!grade) {
-    throw new Error('Grade not found for student');
-  }
+export const getCurrentCourses = async (userId: string) => {
+  return await DashboardModel.getCurrentCourses(userId);
+};
 
-  const lesson = await StudentModel.getLessonById(lessonId);
-  if (!lesson) {
-    throw new Error('Lesson not found');
-  }
+export const getUpcomingTasks = async (userId: string) => {
+  return await DashboardModel.getUpcomingTasks(userId);
+};
 
-  const subject = await StudentModel.getSubjectById(lesson.subject_id);
-  if (!subject) {
-    throw new Error('Subject not found');
-  }
+export const getRecentGrades = async (userId: string) => {
+  return await GradeModel.getRecentGrades(userId, 5);
+};
 
-  if (subject.grade !== grade) {
-    throw new Error('Unauthorized access to materials from another grade');
-  }
+// Lesson Player Services
+export const getLesson = async (slug: string, lessonId: string, userId: string) => {
+  return await LessonModel.getLessonWithDetails(slug, lessonId, userId);
+};
 
-  return await StudentModel.getPdfsByLessonId(lessonId);
+export const markLessonComplete = async (userId: string, lessonId: string, completed: boolean) => {
+  return await LessonModel.completeLesson(userId, lessonId, completed);
+};
+
+// Assignment Services
+export const getAssignments = async (userId: string) => {
+  return await AssignmentModel.getStudentAssignments(userId);
+};
+
+export const getAssignment = async (assignmentId: string, userId: string) => {
+  return await AssignmentModel.getAssignmentById(assignmentId, userId);
+};
+
+export const submitAssignment = async (userId: string, assignmentId: string, fileUrl: string) => {
+  return await AssignmentModel.submitAssignment(userId, assignmentId, fileUrl);
+};
+
+// Grade Services
+export const getGrades = async (userId: string) => {
+  return await GradeModel.getStudentGrades(userId);
 };

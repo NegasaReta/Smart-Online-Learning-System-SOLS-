@@ -1,97 +1,136 @@
 import { Request, Response } from 'express';
 import * as StudentService from '../services/student.service';
 
-export const getSubjects = async (req: Request, res: Response): Promise<void> => {
+export const getClasses = async (req: Request, res: Response) => {
   try {
-    const userId = req.auth?.userId;
-    if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
-      return;
-    }
-
-    const subjects = await StudentService.getSubjects(userId);
-    res.status(200).json(subjects);
-  } catch (error: any) {
-    if (error.message === 'Grade not found for student') {
-      res.status(404).json({ error: error.message });
-      return;
-    }
-    console.error('Error fetching subjects:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    const userId = (req as any).auth.userId;
+    const classes = await StudentService.getClasses(userId);
+    res.json(classes);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching classes', error });
   }
 };
 
-export const getLessons = async (req: Request, res: Response): Promise<void> => {
+export const getCourseDetails = async (req: Request, res: Response) => {
   try {
-    const userId = req.auth?.userId;
-    if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
-      return;
-    }
-
-    const { subjectId } = req.params;
-    const lessons = await StudentService.getLessons(userId, subjectId);
-    res.status(200).json(lessons);
-  } catch (error: any) {
-    if (error.message === 'Grade not found for student' || error.message === 'Subject not found') {
-      res.status(404).json({ error: error.message });
-      return;
-    }
-    if (error.message === 'Unauthorized access to subject from another grade') {
-      res.status(403).json({ error: error.message });
-      return;
-    }
-    console.error('Error fetching lessons:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    const userId = (req as any).auth.userId;
+    const { slug } = req.params;
+    const course = await StudentService.getCourseDetails(slug, userId);
+    if (!course) return res.status(404).json({ message: 'Course not found' });
+    res.json(course);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching course details', error });
   }
 };
 
-export const getVideos = async (req: Request, res: Response): Promise<void> => {
+export const getLesson = async (req: Request, res: Response) => {
   try {
-    const userId = req.auth?.userId;
-    if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
-      return;
-    }
+    const userId = (req as any).auth.userId;
+    const { slug, lessonId } = req.params;
+    const lesson = await StudentService.getLesson(slug, lessonId, userId);
+    if (!lesson) return res.status(404).json({ message: 'Lesson not found' });
+    res.json(lesson);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching lesson', error: (error as any).message });
+  }
+};
 
+export const markLessonComplete = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).auth.userId;
     const { lessonId } = req.params;
-    const videos = await StudentService.getVideos(userId, lessonId);
-    res.status(200).json(videos);
-  } catch (error: any) {
-    if (error.message === 'Grade not found for student' || error.message === 'Lesson not found' || error.message === 'Subject not found') {
-      res.status(404).json({ error: error.message });
-      return;
-    }
-    if (error.message === 'Unauthorized access to materials from another grade') {
-      res.status(403).json({ error: error.message });
-      return;
-    }
-    console.error('Error fetching videos:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    const { completed } = req.body;
+    await StudentService.markLessonComplete(userId, lessonId, completed);
+    res.json({ message: 'Lesson status updated' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating lesson status', error });
   }
 };
 
-export const getPdfs = async (req: Request, res: Response): Promise<void> => {
+export const getAssignments = async (req: Request, res: Response) => {
   try {
-    const userId = req.auth?.userId;
-    if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
-      return;
-    }
+    const userId = (req as any).auth.userId;
+    const assignments = await StudentService.getAssignments(userId);
+    res.json(assignments);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching assignments', error });
+  }
+};
 
-    const { lessonId } = req.params;
-    const pdfs = await StudentService.getPdfs(userId, lessonId);
-    res.status(200).json(pdfs);
-  } catch (error: any) {
-    if (error.message === 'Grade not found for student' || error.message === 'Lesson not found' || error.message === 'Subject not found') {
-      res.status(404).json({ error: error.message });
-      return;
-    }
-    if (error.message === 'Unauthorized access to materials from another grade') {
-      res.status(403).json({ error: error.message });
-      return;
-    }
-    console.error('Error fetching pdfs:', error);
-    res.status(500).json({ error: 'Internal server error' });
+export const getAssignment = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).auth.userId;
+    const { id } = req.params;
+    const assignment = await StudentService.getAssignment(id, userId);
+    if (!assignment) return res.status(404).json({ message: 'Assignment not found' });
+    res.json(assignment);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching assignment', error });
+  }
+};
+
+export const submitAssignment = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).auth.userId;
+    const { id } = req.params;
+    const fileUrl = req.file ? `/uploads/${req.file.filename}` : req.body.fileUrl;
+    
+    if (!fileUrl) return res.status(400).json({ message: 'File is required' });
+
+    await StudentService.submitAssignment(userId, id, fileUrl);
+    res.json({ message: 'Assignment submitted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error submitting assignment', error });
+  }
+};
+
+export const getGrades = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).auth.userId;
+    const grades = await StudentService.getGrades(userId);
+    res.json(grades);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching grades', error });
+  }
+};
+
+// Dashboard Controllers
+export const getProgressOverview = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).auth.userId;
+    const overview = await StudentService.getProgressOverview(userId);
+    res.json(overview);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching progress overview', error });
+  }
+};
+
+export const getCurrentCourses = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).auth.userId;
+    const courses = await StudentService.getCurrentCourses(userId);
+    res.json(courses);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching current courses', error });
+  }
+};
+
+export const getUpcomingTasks = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).auth.userId;
+    const tasks = await StudentService.getUpcomingTasks(userId);
+    res.json(tasks);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching upcoming tasks', error });
+  }
+};
+
+export const getRecentGrades = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).auth.userId;
+    const grades = await StudentService.getRecentGrades(userId);
+    res.json(grades);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching recent grades', error });
   }
 };
