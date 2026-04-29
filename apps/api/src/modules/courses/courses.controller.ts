@@ -3,36 +3,28 @@ import {
   createCourse,
   getCoursesByGrade,
   getCourseById,
+  getAllCourses,
   updateCourse,
   deleteCourse,
-  assignTeacher,
-  getCoursesByTeacher,
 } from "./courses.service";
 
-// POST /api/courses/subject — teacher creates a subject
+// POST /api/courses/subjects
 export const createCourseController = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
-    const authUser = (req as any).auth;
-    const { subjectName, grade, description, language } = req.body;
+    const { name, grade, description } = req.body;
 
-    if (!subjectName || !grade) {
+    if (!name || !grade) {
       res.status(400).json({
         success: false,
-        message: "subjectName and grade are required",
+        message: "name and grade are required",
       });
       return;
     }
 
-    const course = await createCourse(
-      subjectName,
-      grade,
-      description,
-      authUser.userId,
-      language
-    );
+    const course = await createCourse(name, grade, description);
 
     res.status(201).json({
       success: true,
@@ -47,18 +39,18 @@ export const createCourseController = async (
   }
 };
 
-// GET /api/courses/subjects?grade=10 — get courses by grade
+// GET /api/courses/subjects?grade=Grade 10
 export const getCoursesByGradeController = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
-    const grade = parseInt(req.query.grade as string);
+    const grade = req.query.grade as string;
 
-    if (!grade || grade < 1 || grade > 12) {
+    if (!grade) {
       res.status(400).json({
         success: false,
-        message: "Valid grade between 1 and 12 is required",
+        message: "grade query parameter is required e.g. ?grade=Grade 10",
       });
       return;
     }
@@ -78,20 +70,40 @@ export const getCoursesByGradeController = async (
   }
 };
 
-// GET /api/courses/subjects/:id — get single course
+// GET /api/courses/subjects/all
+export const getAllCoursesController = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const courses = await getAllCourses();
+
+    res.status(200).json({
+      success: true,
+      data: courses,
+    });
+  } catch (error) {
+    console.error("Error in getAllCoursesController:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+// GET /api/courses/subjects/:id
 export const getCourseByIdController = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
     const { id } = req.params;
-
     const course = await getCourseById(id);
 
     if (!course) {
       res.status(404).json({
         success: false,
-        message: "Course not found",
+        message: "Subject not found",
       });
       return;
     }
@@ -109,37 +121,29 @@ export const getCourseByIdController = async (
   }
 };
 
-// PUT /api/courses/subjects/:id — teacher updates course
+// PUT /api/courses/subjects/:id
 export const updateCourseController = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
-    const authUser = (req as any).auth;
     const { id } = req.params;
-    const { subjectName, grade, description, language } = req.body;
+    const { name, grade, description } = req.body;
 
-    if (!subjectName || !grade) {
+    if (!name || !grade) {
       res.status(400).json({
         success: false,
-        message: "subjectName and grade are required",
+        message: "name and grade are required",
       });
       return;
     }
 
-    const course = await updateCourse(
-      id,
-      authUser.userId,
-      subjectName,
-      grade,
-      description,
-      language
-    );
+    const course = await updateCourse(id, name, grade, description);
 
     if (!course) {
       res.status(404).json({
         success: false,
-        message: "Course not found or you are not the owner",
+        message: "Subject not found",
       });
       return;
     }
@@ -157,93 +161,29 @@ export const updateCourseController = async (
   }
 };
 
-// DELETE /api/courses/subjects/:id — teacher deletes course
+// DELETE /api/courses/subjects/:id
 export const deleteCourseController = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
-    const authUser = (req as any).auth;
     const { id } = req.params;
-
-    const deleted = await deleteCourse(id, authUser.userId);
+    const deleted = await deleteCourse(id);
 
     if (!deleted) {
       res.status(404).json({
         success: false,
-        message: "Course not found or you are not the owner",
+        message: "Subject not found",
       });
       return;
     }
 
     res.status(200).json({
       success: true,
-      message: "Course deleted successfully",
+      message: "Subject deleted successfully",
     });
   } catch (error) {
     console.error("Error in deleteCourseController:", error);
-    res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
-  }
-};
-
-// POST /api/courses/assign-teacher — assign teacher to course
-export const assignTeacherController = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const { courseId, teacherId } = req.body;
-
-    if (!courseId || !teacherId) {
-      res.status(400).json({
-        success: false,
-        message: "courseId and teacherId are required",
-      });
-      return;
-    }
-
-    const course = await assignTeacher(courseId, teacherId);
-
-    if (!course) {
-      res.status(404).json({
-        success: false,
-        message: "Course not found",
-      });
-      return;
-    }
-
-    res.status(200).json({
-      success: true,
-      data: course,
-    });
-  } catch (error) {
-    console.error("Error in assignTeacherController:", error);
-    res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
-  }
-};
-
-// GET /api/courses/my-courses — teacher sees their own courses
-export const getMyCourseController = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const authUser = (req as any).auth;
-
-    const courses = await getCoursesByTeacher(authUser.userId);
-
-    res.status(200).json({
-      success: true,
-      data: courses,
-    });
-  } catch (error) {
-    console.error("Error in getMyCourseController:", error);
     res.status(500).json({
       success: false,
       message: "Internal server error",

@@ -3,70 +3,61 @@ import {
   createCourseController,
   getCoursesByGradeController,
   getCourseByIdController,
+  getAllCoursesController,
   updateCourseController,
   deleteCourseController,
-  assignTeacherController,
-  getMyCourseController,
 } from "../modules/courses/courses.controller";
 import { authenticateJWT } from "../middlewares/authenticateJWT";
 import { authorizeRoles } from "../middlewares/authorizeRoles";
 
 const router = Router();
 
-// POST /api/courses/subject — teacher only
+// POST /api/courses/subjects — teacher or admin creates subject
 router.post(
-  "/subject",
+  "/subjects",
   authenticateJWT,
-  authorizeRoles("Teacher"),
+  authorizeRoles("teacher", "admin"),
   createCourseController
 );
 
-// GET /api/courses/subjects?grade=10 — student, teacher, parent
+// GET /api/courses/subjects?grade=Grade 10 — all roles
 router.get(
   "/subjects",
   authenticateJWT,
-  authorizeRoles("Student", "Teacher", "Parent", "Admin"),
+  authorizeRoles("student", "teacher", "parent", "admin"),
   getCoursesByGradeController
 );
 
-// GET /api/courses/my-courses — teacher only
+// GET /api/courses/subjects/all — all subjects (teacher/admin)
 router.get(
-  "/my-courses",
+  "/subjects/all",
   authenticateJWT,
-  authorizeRoles("Teacher"),
-  getMyCourseController
+  authorizeRoles("teacher", "admin"),
+  getAllCoursesController
 );
 
-// GET /api/courses/subjects/:id — all roles
+// GET /api/courses/subjects/:id — single subject
 router.get(
   "/subjects/:id",
   authenticateJWT,
-  authorizeRoles("Student", "Teacher", "Parent", "Admin"),
+  authorizeRoles("student", "teacher", "parent", "admin"),
   getCourseByIdController
 );
 
-// PUT /api/courses/subjects/:id — teacher only
+// PUT /api/courses/subjects/:id — teacher or admin updates
 router.put(
   "/subjects/:id",
   authenticateJWT,
-  authorizeRoles("Teacher"),
+  authorizeRoles("teacher", "admin"),
   updateCourseController
 );
 
-// DELETE /api/courses/subjects/:id — teacher only
+// DELETE /api/courses/subjects/:id — admin only
 router.delete(
   "/subjects/:id",
   authenticateJWT,
-  authorizeRoles("Teacher"),
+  authorizeRoles("admin"),
   deleteCourseController
-);
-
-// POST /api/courses/assign-teacher — admin only
-router.post(
-  "/assign-teacher",
-  authenticateJWT,
-  authorizeRoles("Admin"),
-  assignTeacherController
 );
 
 export default router;
