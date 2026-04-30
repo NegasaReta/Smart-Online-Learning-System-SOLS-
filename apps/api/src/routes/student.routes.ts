@@ -20,8 +20,11 @@ router.get('/tasks/upcoming', StudentController.getUpcomingTasks);
 router.get('/grades/recent', StudentController.getRecentGrades);
 
 // 3. LESSON PLAYER API
+import * as DiscussionController from '../controllers/discussion.controller';
 router.get('/classes/:slug/lessons/:lessonId', StudentController.getLesson);
 router.patch('/classes/:slug/lessons/:lessonId/complete', StudentController.markLessonComplete);
+router.get('/classes/:slug/lessons/:lessonId/discussion', DiscussionController.getMessages);
+router.post('/classes/:slug/lessons/:lessonId/discussion', DiscussionController.addMessage);
 
 // 4. ASSIGNMENTS UPGRADE
 router.get('/assignments', StudentController.getAssignments);
@@ -51,5 +54,29 @@ router.get('/resources', ResourceController.getResources);
 router.get('/resources/recent', ResourceController.getRecentResources);
 router.get('/resources/subjects', ResourceController.getResourceSubjects);
 router.post('/resources/request', ResourceController.requestResource);
+
+// --- PHASE 3 MODULES ---
+
+// 9. SETTINGS MODULE
+import * as SettingsController from '../controllers/settings.controller';
+router.put('/settings/password', SettingsController.updatePassword);
+router.get('/settings/preferences', SettingsController.getPreferences);
+router.put('/settings/preferences', SettingsController.updatePreferences);
+router.get('/settings/academic', SettingsController.getAcademic);
+router.put('/settings/academic', SettingsController.updateAcademic);
+router.get('/settings/sessions', SettingsController.getSessions);
+router.delete('/settings/sessions/:sessionId', SettingsController.deleteSession);
+router.post('/settings/2fa/enable', SettingsController.enable2FA);
+router.post('/settings/2fa/disable', SettingsController.disable2FA);
+
+// 10. MESSAGING SYSTEM
+import * as MessageController from '../controllers/message.controller';
+router.post('/messages', MessageController.sendMessage);
+router.get('/messages', MessageController.getMessages);
+
+// 11. NOTIFICATIONS
+import * as NotificationController from '../controllers/notification.controller';
+router.get('/notifications', NotificationController.getNotifications);
+router.patch('/notifications/:notificationId/read', NotificationController.markAsRead);
 
 export default router;

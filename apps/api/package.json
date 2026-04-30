@@ -9,12 +9,14 @@
   },
   "dependencies": {
     "@clerk/backend": "^1.15.5",
+    "@types/socket.io": "^3.0.1",
     "bcrypt": "^6.0.0",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
     "jsonwebtoken": "^9.0.3",
     "multer": "^1.4.5-lts.1",
-    "pg": "^8.20.0"
+    "pg": "^8.20.0",
+    "socket.io": "^4.8.3"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",

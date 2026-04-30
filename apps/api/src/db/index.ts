@@ -236,6 +236,52 @@ export const initDb = async () => {
         color_class VARCHAR(50)
       );
 
+      CREATE TABLE IF NOT EXISTS user_settings (
+        user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+        theme VARCHAR(20) DEFAULT 'system',
+        font_size VARCHAR(10) DEFAULT 'md',
+        high_contrast BOOLEAN DEFAULT false,
+        language VARCHAR(10) DEFAULT 'en',
+        notifications JSONB DEFAULT '{"email": true, "push": true, "sms": false}'::JSONB,
+        school VARCHAR(255),
+        goals TEXT
+      );
+
+      CREATE TABLE IF NOT EXISTS sessions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        device VARCHAR(255),
+        location VARCHAR(255),
+        last_active TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS messages (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        sender_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        recipient_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        course_slug VARCHAR(255),
+        subject VARCHAR(255),
+        body TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS notifications (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        message TEXT NOT NULL,
+        type VARCHAR(50),
+        is_read BOOLEAN DEFAULT false,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS discussions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        lesson_id UUID REFERENCES lessons(id) ON DELETE CASCADE,
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        message TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
       -- Migrations for existing tables
       DO $$
       BEGIN
@@ -300,6 +346,80 @@ export const initDb = async () => {
           ALTER TABLE assignments ADD COLUMN requirements TEXT[];
         EXCEPTION
           WHEN duplicate_column THEN null;
+        END;
+
+        -- Add type to notifications
+        BEGIN
+          ALTER TABLE notifications ADD COLUMN type VARCHAR(50);
+        EXCEPTION
+          WHEN duplicate_column THEN null;
+        END;
+
+        -- Phase 3 Migrations
+        BEGIN
+          CREATE TABLE IF NOT EXISTS user_settings (
+            user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+            theme VARCHAR(20) DEFAULT 'system',
+            font_size VARCHAR(10) DEFAULT 'md',
+            high_contrast BOOLEAN DEFAULT false,
+            language VARCHAR(10) DEFAULT 'en',
+            notifications JSONB DEFAULT '{"email": true, "push": true, "sms": false}'::JSONB,
+            school VARCHAR(255),
+            goals TEXT
+          );
+        EXCEPTION
+          WHEN others THEN null;
+        END;
+
+        BEGIN
+          CREATE TABLE IF NOT EXISTS sessions (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+            device VARCHAR(255),
+            location VARCHAR(255),
+            last_active TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          );
+        EXCEPTION
+          WHEN others THEN null;
+        END;
+
+        BEGIN
+          CREATE TABLE IF NOT EXISTS messages (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            sender_id UUID REFERENCES users(id) ON DELETE CASCADE,
+            recipient_id UUID REFERENCES users(id) ON DELETE CASCADE,
+            course_slug VARCHAR(255),
+            subject VARCHAR(255),
+            body TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          );
+        EXCEPTION
+          WHEN others THEN null;
+        END;
+
+        BEGIN
+          CREATE TABLE IF NOT EXISTS notifications (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+            message TEXT NOT NULL,
+            type VARCHAR(50),
+            is_read BOOLEAN DEFAULT false,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          );
+        EXCEPTION
+          WHEN others THEN null;
+        END;
+
+        BEGIN
+          CREATE TABLE IF NOT EXISTS discussions (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            lesson_id UUID REFERENCES lessons(id) ON DELETE CASCADE,
+            user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+            message TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          );
+        EXCEPTION
+          WHEN others THEN null;
         END;
       END $$;
     `);
