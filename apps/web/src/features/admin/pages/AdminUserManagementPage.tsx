@@ -1,79 +1,111 @@
-import { useState } from "react";
-import { Search, Plus, MoreHorizontal, X, Shield, ChevronLeft, ChevronRight, Edit2, Trash2, Lock } from "lucide-react";
+import { useState, useMemo } from "react";
+import {
+  Search, Plus, MoreHorizontal, X, Shield, ChevronLeft, ChevronRight, Edit2, Trash2,
+  CheckCircle2, Ban, Pause, Eye, AlertTriangle, Check, Mail, Calendar, Clock,
+  UserCog, Users as UsersIcon, GraduationCap, User as UserIcon, UserPlus,
+} from "lucide-react";
 import { AdminSidebar } from "../components/AdminSidebar";
 import { AdminTopbar } from "../components/AdminTopbar";
 
 type Role = "Admin" | "Teacher" | "Student" | "Parent";
-type UserStatus = "Active" | "Suspended" | "Pending";
+type UserStatus = "Active" | "Inactive" | "Suspended" | "Pending";
 
 type SystemUser = {
   id: string;
   name: string;
   avatar: string;
   email: string;
+  phone: string;
   role: Role;
   lastLogin: string;
   status: UserStatus;
   joined: string;
 };
 
-const ROLE_COLORS: Record<Role, string> = {
-  Admin:   "bg-violet-100 text-violet-700",
-  Teacher: "bg-cyan-50 text-cyan-700",
-  Student: "bg-emerald-50 text-emerald-700",
-  Parent:  "bg-orange-50 text-orange-600",
+const ROLE_META: Record<Role, { bg: string; text: string; gradient: string; icon: typeof UserIcon }> = {
+  Admin:   { bg: "bg-violet-100",  text: "text-violet-700",  gradient: "from-violet-500 to-fuchsia-500", icon: Shield },
+  Teacher: { bg: "bg-cyan-100",    text: "text-cyan-700",    gradient: "from-cyan-500 to-teal-500",      icon: GraduationCap },
+  Student: { bg: "bg-emerald-100", text: "text-emerald-700", gradient: "from-emerald-500 to-green-500",  icon: UsersIcon },
+  Parent:  { bg: "bg-orange-100",  text: "text-orange-600",  gradient: "from-orange-500 to-amber-500",   icon: UserIcon },
 };
 
-const STATUS_COLORS: Record<UserStatus, string> = {
-  Active:    "bg-emerald-50 text-emerald-700",
-  Suspended: "bg-red-50 text-red-600",
-  Pending:   "bg-amber-50 text-amber-700",
+const STATUS_META: Record<UserStatus, { bg: string; text: string; dot: string; icon: React.ReactNode }> = {
+  Active:    { bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500", icon: <CheckCircle2 className="size-3" /> },
+  Inactive:  { bg: "bg-ink-100",    text: "text-ink-600",     dot: "bg-ink-400",     icon: <Pause className="size-3" /> },
+  Suspended: { bg: "bg-red-50",     text: "text-red-600",     dot: "bg-red-500",     icon: <Ban className="size-3" /> },
+  Pending:   { bg: "bg-amber-50",   text: "text-amber-700",   dot: "bg-amber-500",   icon: <Clock className="size-3" /> },
 };
 
 const MOCK_USERS: SystemUser[] = [
-  { id: "u1",  name: "Priscilla Lily",   avatar: "https://i.pravatar.cc/80?img=47", email: "priscilla@school.edu",  role: "Admin",   lastLogin: "Just now",       status: "Active",    joined: "Jan 2022" },
-  { id: "u2",  name: "Dr. Alice Monroe", avatar: "https://i.pravatar.cc/80?img=49", email: "alice@school.edu",      role: "Teacher", lastLogin: "2 hours ago",    status: "Active",    joined: "Aug 2022" },
-  { id: "u3",  name: "Mr. James Okafor",avatar: "https://i.pravatar.cc/80?img=11",  email: "james@school.edu",      role: "Teacher", lastLogin: "Yesterday",      status: "Active",    joined: "Aug 2022" },
-  { id: "u4",  name: "Evelyn Harper",    avatar: "https://i.pravatar.cc/80?img=44", email: "evelyn@school.edu",     role: "Student", lastLogin: "3 hours ago",    status: "Active",    joined: "Sep 2023" },
-  { id: "u5",  name: "Diana Plenty",     avatar: "https://i.pravatar.cc/80?img=36", email: "diana@school.edu",      role: "Student", lastLogin: "1 day ago",      status: "Active",    joined: "Sep 2023" },
-  { id: "u6",  name: "Margaret Harper",  avatar: "https://i.pravatar.cc/80?img=46", email: "margaret@mail.com",     role: "Parent",  lastLogin: "5 days ago",     status: "Active",    joined: "Sep 2023" },
-  { id: "u7",  name: "Noah Williams",    avatar: "https://i.pravatar.cc/80?img=12", email: "noah@school.edu",       role: "Student", lastLogin: "2 weeks ago",    status: "Suspended", joined: "Sep 2023" },
-  { id: "u8",  name: "New Teacher",      avatar: "https://i.pravatar.cc/80?img=21", email: "newteacher@school.edu", role: "Teacher", lastLogin: "Never",          status: "Pending",   joined: "Oct 2024" },
-  { id: "u9",  name: "Priya Sharma",     avatar: "https://i.pravatar.cc/80?img=38", email: "priya@school.edu",      role: "Student", lastLogin: "3 weeks ago",    status: "Suspended", joined: "Sep 2022" },
-  { id: "u10", name: "Kofi Osei",        avatar: "https://i.pravatar.cc/80?img=24", email: "kofi@mail.com",         role: "Parent",  lastLogin: "1 week ago",     status: "Active",    joined: "Sep 2022" },
+  { id: "u1",  name: "Priscilla Lily",    avatar: "https://i.pravatar.cc/80?img=47", email: "priscilla@school.edu",   phone: "+1 555-0001", role: "Admin",   lastLogin: "Just now",     status: "Active",    joined: "Jan 2022" },
+  { id: "u2",  name: "Dr. Alice Monroe",  avatar: "https://i.pravatar.cc/80?img=49", email: "alice@school.edu",       phone: "+1 555-0002", role: "Teacher", lastLogin: "2 hours ago",  status: "Active",    joined: "Aug 2022" },
+  { id: "u3",  name: "Mr. James Okafor",  avatar: "https://i.pravatar.cc/80?img=11", email: "james@school.edu",       phone: "+1 555-0003", role: "Teacher", lastLogin: "Yesterday",    status: "Active",    joined: "Aug 2022" },
+  { id: "u4",  name: "Evelyn Harper",     avatar: "https://i.pravatar.cc/80?img=44", email: "evelyn@school.edu",      phone: "+1 555-0004", role: "Student", lastLogin: "3 hours ago",  status: "Active",    joined: "Sep 2023" },
+  { id: "u5",  name: "Diana Plenty",      avatar: "https://i.pravatar.cc/80?img=36", email: "diana@school.edu",       phone: "+1 555-0005", role: "Student", lastLogin: "1 day ago",    status: "Active",    joined: "Sep 2023" },
+  { id: "u6",  name: "Margaret Harper",   avatar: "https://i.pravatar.cc/80?img=46", email: "margaret@mail.com",      phone: "+1 555-0006", role: "Parent",  lastLogin: "5 days ago",   status: "Active",    joined: "Sep 2023" },
+  { id: "u7",  name: "Noah Williams",     avatar: "https://i.pravatar.cc/80?img=12", email: "noah@school.edu",        phone: "+1 555-0007", role: "Student", lastLogin: "2 weeks ago",  status: "Suspended", joined: "Sep 2023" },
+  { id: "u8",  name: "New Teacher",       avatar: "https://i.pravatar.cc/80?img=21", email: "newteacher@school.edu",  phone: "+1 555-0008", role: "Teacher", lastLogin: "Never",        status: "Pending",   joined: "Oct 2024" },
+  { id: "u9",  name: "Priya Sharma",      avatar: "https://i.pravatar.cc/80?img=38", email: "priya@school.edu",       phone: "+1 555-0009", role: "Student", lastLogin: "3 weeks ago",  status: "Suspended", joined: "Sep 2022" },
+  { id: "u10", name: "Kofi Osei",         avatar: "https://i.pravatar.cc/80?img=24", email: "kofi@mail.com",          phone: "+1 555-0010", role: "Parent",  lastLogin: "1 week ago",   status: "Active",    joined: "Sep 2022" },
+  { id: "u11", name: "Carlos Martinez",   avatar: "https://i.pravatar.cc/80?img=33", email: "carlos@mail.com",        phone: "+1 555-0011", role: "Parent",  lastLogin: "2 months ago", status: "Inactive",  joined: "Sep 2022" },
+  { id: "u12", name: "Ms. Clara Zhang",   avatar: "https://i.pravatar.cc/80?img=45", email: "clara@school.edu",       phone: "+1 555-0012", role: "Teacher", lastLogin: "30 min ago",   status: "Active",    joined: "Aug 2023" },
 ];
 
 const PAGE_SIZE = 7;
-const ROLES: Array<"All" | Role> = ["All", "Admin", "Teacher", "Student", "Parent"];
 
 export default function AdminUserManagementPage() {
+  const [users, setUsers] = useState<SystemUser[]>(MOCK_USERS);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<"All" | Role>("All");
   const [statusFilter, setStatusFilter] = useState<"All" | UserStatus>("All");
-  const [users, setUsers] = useState<SystemUser[]>(MOCK_USERS);
   const [page, setPage] = useState(1);
   const [showAdd, setShowAdd] = useState(false);
+  const [viewUser, setViewUser] = useState<SystemUser | null>(null);
   const [editUser, setEditUser] = useState<SystemUser | null>(null);
+  const [deleteUser, setDeleteUser] = useState<SystemUser | null>(null);
+  const [menuOpen, setMenuOpen] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
 
-  const filtered = users.filter(u => {
-    const matchSearch = u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase());
-    const matchRole = roleFilter === "All" || u.role === roleFilter;
-    const matchStatus = statusFilter === "All" || u.status === statusFilter;
-    return matchSearch && matchRole && matchStatus;
-  });
+  function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(null), 2400); }
+
+  const filtered = useMemo(() => users.filter(u => {
+    const q = search.toLowerCase();
+    if (q && !u.name.toLowerCase().includes(q) && !u.email.toLowerCase().includes(q)) return false;
+    if (roleFilter !== "All" && u.role !== roleFilter) return false;
+    if (statusFilter !== "All" && u.status !== statusFilter) return false;
+    return true;
+  }), [users, search, roleFilter, statusFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  function toggleStatus(id: string) {
-    setUsers(us => us.map(u => u.id === id
-      ? { ...u, status: u.status === "Active" ? "Suspended" : "Active" }
-      : u));
+  function changeStatus(id: string, status: UserStatus) {
+    setUsers(us => us.map(u => u.id === id ? { ...u, status } : u));
+    if (viewUser?.id === id) setViewUser(v => v ? { ...v, status } : v);
+    showToast(`User marked as ${status}`);
+  }
+  function addUser(u: SystemUser) { setUsers(us => [u, ...us]); setShowAdd(false); showToast(`Invitation sent to ${u.email}`); }
+  function updateUser(u: SystemUser) { setUsers(us => us.map(x => x.id === u.id ? u : x)); setEditUser(null); setViewUser(u); showToast("User updated"); }
+  function removeUser() {
+    if (!deleteUser) return;
+    setUsers(us => us.filter(u => u.id !== deleteUser.id));
+    showToast(`${deleteUser.name} removed`);
+    setDeleteUser(null); setViewUser(null);
   }
 
-  function deleteUser(id: string) {
-    setUsers(us => us.filter(u => u.id !== id));
-  }
+  const stats = {
+    total:     users.length,
+    active:    users.filter(u => u.status === "Active").length,
+    suspended: users.filter(u => u.status === "Suspended").length,
+    pending:   users.filter(u => u.status === "Pending").length,
+  };
+
+  const STAT_CARDS = [
+    { label: "Total Users",  value: stats.total,     icon: UserCog,      gradient: "from-violet-500 to-fuchsia-500" },
+    { label: "Active",       value: stats.active,    icon: CheckCircle2, gradient: "from-emerald-500 to-green-500" },
+    { label: "Suspended",    value: stats.suspended, icon: Ban,          gradient: "from-red-500 to-rose-500" },
+    { label: "Pending",      value: stats.pending,   icon: Clock,        gradient: "from-amber-500 to-orange-500" },
+  ];
 
   return (
     <div className="flex min-h-screen bg-[#f5f5fb] font-sans text-ink-900">
@@ -85,44 +117,66 @@ export default function AdminUserManagementPage() {
           <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between animate-fade-in-up">
             <div>
               <h1 className="text-2xl font-bold text-ink-900">User Management</h1>
-              <p className="text-sm text-ink-500">{users.length} system users</p>
+              <p className="text-sm text-ink-500">{filtered.length} of {users.length} system users</p>
             </div>
             <button onClick={() => setShowAdd(true)}
-              className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-violet-700">
-              <Plus className="size-4" /> Invite User
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-500 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition hover:shadow-lg hover:scale-[1.02] active:scale-100">
+              <UserPlus className="size-4" /> Invite User
             </button>
           </div>
 
-          {/* Role summary badges */}
-          <div className="mb-5 flex flex-wrap gap-3 animate-fade-in-up" style={{ animationDelay: "60ms" }}>
+          {/* Stat cards */}
+          <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4 animate-fade-in-up" style={{ animationDelay: "40ms" }}>
+            {STAT_CARDS.map((s, i) => (
+              <div key={s.label} className="group flex items-center justify-between rounded-2xl border border-ink-200 bg-white p-4 shadow-card transition hover:shadow-md hover:scale-[1.02] animate-fade-in-up"
+                style={{ animationDelay: `${i * 40}ms` }}>
+                <div>
+                  <p className="text-xs font-semibold text-ink-500">{s.label}</p>
+                  <p className="mt-1 text-2xl font-bold text-ink-900">{s.value}</p>
+                </div>
+                <span className={`flex size-11 items-center justify-center rounded-2xl bg-gradient-to-br ${s.gradient} text-white transition group-hover:scale-110`}>
+                  <s.icon className="size-5" aria-hidden />
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Role pills with counts */}
+          <div className="mb-5 flex flex-wrap gap-3 animate-fade-in-up" style={{ animationDelay: "80ms" }}>
             {(["Admin","Teacher","Student","Parent"] as Role[]).map(r => {
               const count = users.filter(u => u.role === r).length;
+              const M = ROLE_META[r];
+              const active = roleFilter === r;
               return (
-                <button key={r} onClick={() => { setRoleFilter(roleFilter === r ? "All" : r); setPage(1); }}
-                  className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition ${roleFilter === r ? "border-violet-300 bg-violet-600 text-white" : "border-ink-200 bg-white text-ink-700 hover:bg-violet-50"}`}>
-                  <Shield className="size-4" />{r}
-                  <span className={`ml-1 rounded-full px-2 py-0.5 text-xs ${roleFilter === r ? "bg-white/20 text-white" : "bg-ink-100 text-ink-600"}`}>{count}</span>
+                <button key={r} onClick={() => { setRoleFilter(active ? "All" : r); setPage(1); }}
+                  className={`group flex items-center gap-2 overflow-hidden rounded-xl border p-0.5 text-sm font-semibold transition hover:shadow-md ${active ? "border-transparent shadow-md" : "border-ink-200 bg-white text-ink-700"}`}>
+                  <span className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 ${active ? `bg-gradient-to-r ${M.gradient} text-white` : ""}`}>
+                    <M.icon className="size-4" />
+                    {r}
+                  </span>
+                  <span className={`pr-3 text-xs font-bold ${active ? "text-ink-900" : "text-ink-500"}`}>{count}</span>
                 </button>
               );
             })}
           </div>
 
           {/* Filters */}
-          <div className="mb-4 flex flex-wrap items-center gap-3 animate-fade-in-up" style={{ animationDelay: "100ms" }}>
+          <div className="mb-4 flex flex-wrap items-center gap-3 animate-fade-in-up" style={{ animationDelay: "120ms" }}>
             <label className="relative flex items-center">
               <Search className="pointer-events-none absolute left-3 size-4 text-ink-400" />
-              <input type="search" placeholder="Search users..." value={search}
+              <input type="search" placeholder="Search by name or email..." value={search}
                 onChange={e => { setSearch(e.target.value); setPage(1); }}
-                className="h-10 w-64 rounded-xl border border-ink-200 bg-white pl-9 pr-4 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100" />
+                className="h-10 w-72 rounded-xl border border-ink-200 bg-white pl-9 pr-4 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100" />
             </label>
             <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value as "All" | UserStatus); setPage(1); }}
               className="h-10 rounded-xl border border-ink-200 bg-white px-3 text-sm outline-none focus:border-violet-400">
-              {(["All","Active","Suspended","Pending"] as Array<"All"|UserStatus>).map(s => <option key={s}>{s}</option>)}
+              <option value="All">All Statuses</option>
+              {(Object.keys(STATUS_META) as UserStatus[]).map(s => <option key={s}>{s}</option>)}
             </select>
           </div>
 
           {/* Table */}
-          <div className="rounded-2xl border border-ink-200 bg-white shadow-card overflow-hidden animate-fade-in-up" style={{ animationDelay: "140ms" }}>
+          <div className="rounded-2xl border border-ink-200 bg-white shadow-card overflow-hidden animate-fade-in-up" style={{ animationDelay: "160ms" }}>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -132,41 +186,62 @@ export default function AdminUserManagementPage() {
                     <th className="px-4 py-3 text-left">Last Login</th>
                     <th className="px-4 py-3 text-left">Joined</th>
                     <th className="px-4 py-3 text-left">Status</th>
-                    <th className="px-4 py-3 text-left">Actions</th>
+                    <th className="px-4 py-3 text-right"></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {paged.map(u => (
-                    <tr key={u.id} className="border-b border-ink-50 last:border-0 hover:bg-violet-50/30 transition">
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-2.5">
-                          <img src={u.avatar} alt={u.name} className="size-8 rounded-full object-cover ring-2 ring-ink-100" />
-                          <div>
-                            <p className="font-semibold text-ink-900">{u.name}</p>
-                            <p className="text-xs text-ink-400">{u.email}</p>
+                  {paged.map(u => {
+                    const RM = ROLE_META[u.role];
+                    return (
+                      <tr key={u.id} onClick={() => setViewUser(u)}
+                        className="border-b border-ink-50 last:border-0 cursor-pointer transition hover:bg-violet-50/30">
+                        <td className="px-5 py-3.5">
+                          <div className="flex items-center gap-2.5">
+                            <img src={u.avatar} alt={u.name} className="size-9 rounded-full object-cover ring-2 ring-violet-100" />
+                            <div>
+                              <p className="font-semibold text-ink-900">{u.name}</p>
+                              <p className="text-xs text-ink-400">{u.email}</p>
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${ROLE_COLORS[u.role]}`}>
-                          <Shield className="size-2.5" />{u.role}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3.5 text-xs text-ink-500">{u.lastLogin}</td>
-                      <td className="px-4 py-3.5 text-xs text-ink-500">{u.joined}</td>
-                      <td className="px-4 py-3.5">
-                        <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_COLORS[u.status]}`}>{u.status}</span>
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <div className="flex items-center gap-1">
-                          <button onClick={() => setEditUser(u)} title="Edit" className="rounded-md p-1.5 text-ink-400 hover:bg-violet-50 hover:text-violet-700"><Edit2 className="size-3.5" /></button>
-                          <button onClick={() => toggleStatus(u.id)} title={u.status === "Active" ? "Suspend" : "Activate"}
-                            className="rounded-md p-1.5 text-ink-400 hover:bg-amber-50 hover:text-amber-600"><Lock className="size-3.5" /></button>
-                          <button onClick={() => deleteUser(u.id)} title="Delete" className="rounded-md p-1.5 text-ink-400 hover:bg-red-50 hover:text-red-600"><Trash2 className="size-3.5" /></button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${RM.bg} ${RM.text}`}>
+                            <RM.icon className="size-3" />{u.role}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3.5 text-xs text-ink-500">{u.lastLogin}</td>
+                        <td className="px-4 py-3.5 text-xs text-ink-500">{u.joined}</td>
+                        <td className="px-4 py-3.5">
+                          <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_META[u.status].bg} ${STATUS_META[u.status].text}`}>
+                            <span className={`size-1.5 rounded-full ${STATUS_META[u.status].dot}`} />{u.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3.5 text-right" onClick={e => e.stopPropagation()}>
+                          <div className="relative inline-block">
+                            <button onClick={() => setMenuOpen(menuOpen === u.id ? null : u.id)}
+                              className="rounded-md p-1 text-ink-400 hover:bg-ink-100">
+                              <MoreHorizontal className="size-4" />
+                            </button>
+                            {menuOpen === u.id && (
+                              <div className="absolute right-0 top-8 z-30 w-48 rounded-xl border border-ink-200 bg-white py-1 shadow-lg animate-scale-in">
+                                <button onClick={() => { setViewUser(u); setMenuOpen(null); }} className="flex w-full items-center gap-2 px-3 py-2 text-xs text-ink-700 hover:bg-ink-50"><Eye className="size-3.5" />View Profile</button>
+                                <button onClick={() => { setEditUser(u); setMenuOpen(null); }} className="flex w-full items-center gap-2 px-3 py-2 text-xs text-ink-700 hover:bg-ink-50"><Edit2 className="size-3.5" />Edit User</button>
+                                <div className="my-1 border-t border-ink-100" />
+                                <p className="px-3 pt-1 text-[9px] font-bold uppercase text-ink-400">Set Status</p>
+                                {(["Active","Inactive","Suspended"] as UserStatus[]).filter(s => s !== u.status).map(s => (
+                                  <button key={s} onClick={() => { changeStatus(u.id, s); setMenuOpen(null); }} className="flex w-full items-center gap-2 px-3 py-2 text-xs text-ink-700 hover:bg-violet-50">
+                                    <span className={`size-2 rounded-full ${STATUS_META[s].dot}`} />Mark {s}
+                                  </button>
+                                ))}
+                                <div className="my-1 border-t border-ink-100" />
+                                <button onClick={() => { setDeleteUser(u); setMenuOpen(null); }} className="flex w-full items-center gap-2 px-3 py-2 text-xs text-red-600 hover:bg-red-50"><Trash2 className="size-3.5" />Delete</button>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                   {paged.length === 0 && (
                     <tr><td colSpan={6} className="px-5 py-12 text-center text-sm text-ink-400">No users found.</td></tr>
                   )}
@@ -187,60 +262,182 @@ export default function AdminUserManagementPage() {
         </main>
       </div>
 
-      {/* Edit modal */}
-      {editUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 animate-fade-in">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl animate-scale-in">
-            <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-lg font-bold">Edit User</h2>
-              <button onClick={() => setEditUser(null)} className="rounded-full p-1.5 hover:bg-ink-100"><X className="size-4 text-ink-500" /></button>
-            </div>
-            <div className="flex flex-col gap-4">
-              <label className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold text-ink-700">Name</span>
-                <input defaultValue={editUser.name} className="h-10 rounded-xl border border-ink-200 px-3 text-sm outline-none focus:border-violet-400" />
-              </label>
-              <label className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold text-ink-700">Role</span>
-                <select defaultValue={editUser.role} className="h-10 rounded-xl border border-ink-200 px-3 text-sm outline-none focus:border-violet-400">
-                  {(["Admin","Teacher","Student","Parent"] as Role[]).map(r => <option key={r}>{r}</option>)}
-                </select>
-              </label>
-            </div>
-            <div className="mt-6 flex gap-3">
-              <button onClick={() => setEditUser(null)} className="flex-1 rounded-xl border border-ink-200 py-2.5 text-sm font-semibold text-ink-700 hover:bg-ink-50">Cancel</button>
-              <button onClick={() => setEditUser(null)} className="flex-1 rounded-xl bg-violet-600 py-2.5 text-sm font-semibold text-white hover:bg-violet-700">Save</button>
+      {/* Modals */}
+      {viewUser && !editUser && <UserDetail user={viewUser} onClose={() => setViewUser(null)} onEdit={() => setEditUser(viewUser)} onDelete={() => setDeleteUser(viewUser)} onStatusChange={(st) => changeStatus(viewUser.id, st)} />}
+      {showAdd && <UserModal mode="create" onClose={() => setShowAdd(false)} onSave={addUser} />}
+      {editUser && <UserModal mode="edit" user={editUser} onClose={() => setEditUser(null)} onSave={updateUser} />}
+      {deleteUser && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4 animate-fade-in">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl animate-scale-in text-center">
+            <span className="mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-red-100"><AlertTriangle className="size-6 text-red-600" /></span>
+            <h3 className="text-lg font-bold text-ink-900">Delete User</h3>
+            <p className="mt-1 text-sm text-ink-500">Permanently delete <strong>{deleteUser.name}</strong>?</p>
+            <div className="mt-5 flex gap-3">
+              <button onClick={() => setDeleteUser(null)} className="flex-1 rounded-xl border border-ink-200 py-2.5 text-sm font-semibold text-ink-700 hover:bg-ink-50">Cancel</button>
+              <button onClick={removeUser} className="flex-1 rounded-xl bg-red-600 py-2.5 text-sm font-semibold text-white hover:bg-red-700">Delete</button>
             </div>
           </div>
         </div>
       )}
-
-      {showAdd && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 animate-fade-in">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl animate-scale-in">
-            <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-lg font-bold">Invite User</h2>
-              <button onClick={() => setShowAdd(false)} className="rounded-full p-1.5 hover:bg-ink-100"><X className="size-4 text-ink-500" /></button>
-            </div>
-            <div className="flex flex-col gap-4">
-              <label className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold text-ink-700">Email</span>
-                <input type="email" className="h-10 rounded-xl border border-ink-200 px-3 text-sm outline-none focus:border-violet-400" placeholder="user@school.edu" />
-              </label>
-              <label className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold text-ink-700">Role</span>
-                <select className="h-10 rounded-xl border border-ink-200 px-3 text-sm outline-none focus:border-violet-400">
-                  {(["Teacher","Student","Parent"] as Role[]).map(r => <option key={r}>{r}</option>)}
-                </select>
-              </label>
-            </div>
-            <div className="mt-6 flex gap-3">
-              <button onClick={() => setShowAdd(false)} className="flex-1 rounded-xl border border-ink-200 py-2.5 text-sm font-semibold text-ink-700 hover:bg-ink-50">Cancel</button>
-              <button onClick={() => setShowAdd(false)} className="flex-1 rounded-xl bg-violet-600 py-2.5 text-sm font-semibold text-white hover:bg-violet-700">Send Invite</button>
-            </div>
-          </div>
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-[70] flex items-center gap-2 rounded-xl bg-ink-900 px-4 py-3 text-sm font-medium text-white shadow-lg animate-fade-in-up">
+          <Check className="size-4 text-emerald-400" /> {toast}
         </div>
       )}
     </div>
   );
+}
+
+/* ─────────── User Detail ─────────── */
+function UserDetail({ user: u, onClose, onEdit, onDelete, onStatusChange }: {
+  user: SystemUser; onClose: () => void; onEdit: () => void; onDelete: () => void; onStatusChange: (st: UserStatus) => void;
+}) {
+  const RM = ROLE_META[u.role];
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end bg-black/40 animate-fade-in" onClick={onClose}>
+      <div className="h-full w-full max-w-md overflow-y-auto bg-white shadow-2xl animate-fade-in-up" onClick={e => e.stopPropagation()}>
+        <div className={`relative bg-gradient-to-br ${RM.gradient} p-6 pb-16 text-white`}>
+          <div className="flex items-start justify-between">
+            <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2.5 py-0.5 text-[10px] font-bold uppercase backdrop-blur">
+              <RM.icon className="size-3" />{u.role}
+            </span>
+            <button onClick={onClose} className="rounded-full p-1.5 hover:bg-white/20"><X className="size-4 text-white" /></button>
+          </div>
+        </div>
+        <div className="px-6">
+          <div className="-mt-14 mb-4 flex items-end gap-4">
+            <img src={u.avatar} alt={u.name} className="size-24 rounded-2xl border-4 border-white object-cover shadow-lg" />
+            <div className="pb-2">
+              <h2 className="text-xl font-bold text-ink-900">{u.name}</h2>
+              <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${STATUS_META[u.status].bg} ${STATUS_META[u.status].text}`}>
+                <span className={`size-1.5 rounded-full ${STATUS_META[u.status].dot}`} />{u.status}
+              </span>
+            </div>
+          </div>
+
+          <section className="mb-5">
+            <h3 className="mb-3 text-[10px] font-bold uppercase text-ink-400">Contact</h3>
+            <div className="space-y-2">
+              <InfoRow icon={Mail} label="Email" value={u.email} />
+              <InfoRow icon={UserIcon} label="Phone" value={u.phone} />
+            </div>
+          </section>
+
+          <section className="mb-5">
+            <h3 className="mb-3 text-[10px] font-bold uppercase text-ink-400">Account</h3>
+            <div className="space-y-2">
+              <InfoRow icon={Calendar} label="Joined" value={u.joined} />
+              <InfoRow icon={Clock} label="Last Login" value={u.lastLogin} />
+            </div>
+          </section>
+
+          <section className="mb-5">
+            <h3 className="mb-2 text-[10px] font-bold uppercase text-ink-400">Status</h3>
+            <div className="grid grid-cols-2 gap-2">
+              {(["Active","Inactive","Suspended","Pending"] as UserStatus[]).map(s => (
+                <button key={s} onClick={() => onStatusChange(s)}
+                  className={`inline-flex items-center justify-center gap-1.5 rounded-xl border-2 py-2 text-xs font-bold transition ${u.status === s ? `border-transparent ${STATUS_META[s].bg} ${STATUS_META[s].text}` : "border-ink-200 text-ink-500 hover:border-violet-300"}`}>
+                  {STATUS_META[s].icon}{s}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <div className="flex gap-3 pb-6">
+            <button onClick={onDelete} className="flex-1 inline-flex items-center justify-center gap-1 rounded-xl bg-red-50 py-2.5 text-sm font-semibold text-red-700 hover:bg-red-100"><Trash2 className="size-4" />Delete</button>
+            <button onClick={onEdit} className="flex-1 inline-flex items-center justify-center gap-1 rounded-xl bg-violet-600 py-2.5 text-sm font-semibold text-white hover:bg-violet-700"><Edit2 className="size-4" />Edit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function InfoRow({ icon: Icon, label, value }: { icon: typeof Mail; label: string; value: string }) {
+  return (
+    <div className="flex items-center gap-3 rounded-xl border border-ink-100 bg-ink-50 p-3">
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600"><Icon className="size-4" /></span>
+      <div className="min-w-0">
+        <p className="text-[10px] font-semibold uppercase text-ink-400">{label}</p>
+        <p className="truncate text-sm font-semibold text-ink-900">{value}</p>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────── User Modal ─────────── */
+const fieldCls = "h-10 w-full rounded-xl border border-ink-200 px-3 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100";
+
+function UserModal({ mode, user, onClose, onSave }: {
+  mode: "create" | "edit"; user?: SystemUser; onClose: () => void; onSave: (u: SystemUser) => void;
+}) {
+  const seed = user || {} as SystemUser;
+  const [form, setForm] = useState<SystemUser>({
+    id: seed.id || `u${Date.now()}`,
+    name: seed.name || "",
+    avatar: seed.avatar || `https://i.pravatar.cc/120?img=${Math.floor(Math.random()*70)+1}`,
+    email: seed.email || "",
+    phone: seed.phone || "",
+    role: seed.role || "Teacher",
+    lastLogin: seed.lastLogin || "Never",
+    status: seed.status || (mode === "create" ? "Pending" : "Active"),
+    joined: seed.joined || new Date().toLocaleDateString("en-US", { month: "short", year: "numeric" }),
+  });
+  function set<K extends keyof SystemUser>(k: K, v: SystemUser[K]) { setForm(f => ({ ...f, [k]: v })); }
+  const valid = form.email.trim() && (mode === "edit" || true);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 animate-fade-in">
+      <div className="w-full max-w-md max-h-[92vh] overflow-y-auto rounded-2xl bg-white shadow-2xl animate-scale-in">
+        <div className="bg-gradient-to-br from-violet-600 to-fuchsia-500 px-6 py-5 text-white">
+          <div className="flex items-center justify-between">
+            <h2 className="flex items-center gap-2 text-lg font-bold">{mode === "create" ? <UserPlus className="size-5" /> : <Edit2 className="size-5" />}{mode === "create" ? "Invite User" : "Edit User"}</h2>
+            <button onClick={onClose} className="rounded-full p-1.5 hover:bg-white/20"><X className="size-4 text-white" /></button>
+          </div>
+        </div>
+
+        <div className="p-6 space-y-4">
+          {mode === "edit" && <Field label="Name *"><input value={form.name} onChange={e => set("name", e.target.value)} className={fieldCls} /></Field>}
+          <Field label="Email *"><input type="email" value={form.email} onChange={e => set("email", e.target.value)} className={fieldCls} placeholder="user@school.edu" autoFocus /></Field>
+          <Field label="Phone"><input value={form.phone} onChange={e => set("phone", e.target.value)} className={fieldCls} /></Field>
+
+          <div>
+            <p className="mb-2 text-xs font-semibold text-ink-700">Role</p>
+            <div className="grid grid-cols-2 gap-2">
+              {(["Admin","Teacher","Student","Parent"] as Role[]).map(r => {
+                const RM = ROLE_META[r];
+                return (
+                  <button key={r} type="button" onClick={() => set("role", r)}
+                    className={`flex items-center gap-2 rounded-xl border-2 px-3 py-2 text-sm font-bold transition ${form.role === r ? `border-transparent bg-gradient-to-br ${RM.gradient} text-white` : "border-ink-200 text-ink-500 hover:border-violet-300"}`}>
+                    <RM.icon className="size-4" />{r}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {mode === "edit" && (
+            <Field label="Status">
+              <select value={form.status} onChange={e => set("status", e.target.value as UserStatus)} className={fieldCls}>
+                {(Object.keys(STATUS_META) as UserStatus[]).map(s => <option key={s}>{s}</option>)}
+              </select>
+            </Field>
+          )}
+        </div>
+
+        <div className="flex items-center justify-end gap-3 border-t border-ink-100 bg-ink-50 px-6 py-4">
+          <button onClick={onClose} className="rounded-xl border border-ink-200 bg-white px-4 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-100">Cancel</button>
+          <button onClick={() => valid && onSave(form)} disabled={!valid}
+            className="inline-flex items-center gap-1 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-500 px-5 py-2 text-sm font-bold text-white shadow-md disabled:opacity-50 hover:shadow-lg">
+            {mode === "create" ? <><Mail className="size-4" />Send Invite</> : <><Check className="size-4" />Save</>}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return <label className="flex flex-col gap-1.5"><span className="text-xs font-semibold text-ink-700">{label}</span>{children}</label>;
 }

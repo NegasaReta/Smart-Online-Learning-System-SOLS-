@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Eye, EyeOff, Edit2, ToggleLeft, ToggleRight, Globe, Lock, LayoutGrid } from "lucide-react";
+import { Eye, EyeOff, Edit2, ToggleLeft, ToggleRight, Globe, Lock, LayoutGrid, FolderOpen } from "lucide-react";
 import { AdminSidebar } from "../components/AdminSidebar";
 import { AdminTopbar } from "../components/AdminTopbar";
 import { Link } from "react-router-dom";
@@ -82,15 +82,22 @@ export default function AdminManagePagesPage() {
           </div>
 
           {/* Stats */}
-          <div className="mb-6 grid grid-cols-3 gap-4 animate-fade-in-up" style={{ animationDelay: "60ms" }}>
+          <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4 animate-fade-in-up" style={{ animationDelay: "60ms" }}>
             {[
-              { label: "Total Pages",   value: pages.length,                        bg: "bg-violet-50", text: "text-violet-700" },
-              { label: "Visible",       value: pages.filter(p => p.visible).length,  bg: "bg-emerald-50",text: "text-emerald-700" },
-              { label: "Hidden",        value: pages.filter(p => !p.visible).length, bg: "bg-red-50",    text: "text-red-600" },
-            ].map(s => (
-              <div key={s.label} className={`rounded-2xl border border-ink-200 bg-white p-4 shadow-card`}>
-                <p className="text-xs font-semibold text-ink-500">{s.label}</p>
-                <p className={`mt-1 text-2xl font-bold ${s.text}`}>{s.value}</p>
+              { label: "Total Pages", value: pages.length,                                  icon: LayoutGrid, gradient: "from-violet-500 to-fuchsia-500" },
+              { label: "Visible",     value: pages.filter(p => p.visible).length,           icon: Eye,        gradient: "from-emerald-500 to-green-500" },
+              { label: "Hidden",      value: pages.filter(p => !p.visible).length,          icon: EyeOff,     gradient: "from-red-500 to-rose-500" },
+              { label: "Sections",    value: new Set(pages.map(p => p.section)).size,       icon: FolderOpen, gradient: "from-amber-500 to-orange-500" },
+            ].map((s, i) => (
+              <div key={s.label} className="group flex items-center justify-between rounded-2xl border border-ink-200 bg-white p-4 shadow-card transition hover:shadow-md hover:scale-[1.02] animate-fade-in-up"
+                style={{ animationDelay: `${i * 40}ms` }}>
+                <div>
+                  <p className="text-xs font-semibold text-ink-500">{s.label}</p>
+                  <p className="mt-1 text-2xl font-bold text-ink-900">{s.value}</p>
+                </div>
+                <span className={`flex size-11 items-center justify-center rounded-2xl bg-gradient-to-br ${s.gradient} text-white transition group-hover:scale-110`}>
+                  <s.icon className="size-5" aria-hidden />
+                </span>
               </div>
             ))}
           </div>

@@ -17,7 +17,6 @@ import {
   LayoutGrid,
   ClipboardList,
   FileText,
-  MessageSquare,
   Megaphone,
 } from "lucide-react";
 import type { ComponentType, SVGProps } from "react";
@@ -46,7 +45,6 @@ const items: NavItem[] = [
   { key: "exams",          label: "Exams",             icon: FileText,        to: "/admin/exams" },
   { key: "reports",        label: "Reports",           icon: BarChart3,       to: "/admin/reports" },
   { key: "announcements",  label: "Announcements",     icon: Megaphone,       to: "/admin/announcements", badge: 2 },
-  { key: "messages",       label: "Messages",          icon: MessageSquare,   to: "/admin/messages",      badge: 5 },
   { key: "userManagement", label: "User Management",   icon: UserCog,         to: "/admin/users" },
   { key: "analytics",      label: "Analytics & Usage", icon: LineChart,       to: "/admin/analytics" },
   { key: "managePages",    label: "Manage Pages",      icon: LayoutGrid,      to: "/admin/manage-pages" },

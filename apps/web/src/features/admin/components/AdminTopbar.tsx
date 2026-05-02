@@ -1,4 +1,4 @@
-import { Search, Bell, MessageSquare, ChevronDown, Settings, UserCircle, LogOut, User, Shield, Globe } from "lucide-react";
+import { Search, Bell, ChevronDown, Settings, UserCircle, LogOut, User, Shield, Globe } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -115,18 +115,6 @@ export function AdminTopbar() {
               </div>
             </div>
           )}
-        </div>
-
-        {/* Messages */}
-        <div className="relative">
-          <Link
-            to="/admin/messages"
-            aria-label="Messages"
-            className="relative flex size-9 items-center justify-center rounded-full text-ink-600 transition hover:bg-ink-100"
-          >
-            <MessageSquare className="size-5" />
-            <span className="absolute right-1 top-1 size-2 rounded-full bg-violet-500 ring-2 ring-white" aria-hidden />
-          </Link>
         </div>
 
         {/* Language selector */}
