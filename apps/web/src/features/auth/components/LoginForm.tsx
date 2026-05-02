@@ -2,7 +2,18 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  Loader2,
+  AlertCircle,
+  GraduationCap,
+  BookOpen,
+  Shield,
+} from "lucide-react";
 import {
   loginSchema,
   loginDefaultValues,
@@ -15,6 +26,12 @@ const ROLE_REDIRECTS: Record<string, string> = {
   admin: "/admin/dashboard",
 };
 
+const ROLE_OPTIONS = [
+  { value: "student", label: "Student", icon: GraduationCap, color: "text-brand" },
+  { value: "teacher", label: "Teacher", icon: BookOpen, color: "text-emerald-600" },
+  { value: "admin", label: "Admin", icon: Shield, color: "text-violet-600" },
+];
+
 export function LoginForm() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
@@ -23,6 +40,8 @@ export function LoginForm() {
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -30,9 +49,11 @@ export function LoginForm() {
     mode: "onBlur",
   });
 
+  const selectedRole = watch("role");
+
   const onSubmit = async (values: LoginFormValues) => {
     setServerError(null);
-    await new Promise((r) => setTimeout(r, 700));
+    await new Promise((r) => setTimeout(r, 600));
     navigate(ROLE_REDIRECTS[values.role] ?? "/student/dashboard", { replace: true });
   };
 
@@ -40,37 +61,60 @@ export function LoginForm() {
     <form
       onSubmit={handleSubmit(onSubmit)}
       noValidate
-      className="flex w-full max-w-[380px] flex-col gap-5"
+      className="flex w-full max-w-[448px] flex-col gap-6"
       aria-label="Login form"
     >
-      {/* Serif heading — matches reference exactly */}
-      <div className="flex flex-col gap-1.5 text-center">
-        <h2
-          className="text-[42px] font-bold leading-tight tracking-tight text-ink-900"
-          style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
-        >
-          Welcome Back
+      {/* Header */}
+      <div className="flex flex-col items-center gap-1 text-center">
+        <h2 className="text-[32px] font-bold leading-10 tracking-tight text-ink-900">
+          Welcome back
         </h2>
         <p className="text-sm text-ink-500">
-          Enter your email and password to access your account
+          Sign in to continue to your portal.
         </p>
       </div>
 
-      {/* Role selector — small, subtle, below heading */}
-      <div className="flex flex-col gap-1">
-        <label htmlFor="role" className="text-xs font-semibold text-ink-500 uppercase tracking-wider">
-          Sign in as
-        </label>
-        <select
-          id="role"
-          {...register("role")}
-          className="h-10 w-full rounded-lg border border-ink-200 bg-ink-50 px-3 text-sm text-ink-700 outline-none transition focus:border-ink-900 focus:ring-2 focus:ring-ink-900/10"
+      {/* Tab switcher */}
+      <div className="flex w-full items-center rounded-xl border border-ink-200 bg-ink-50 p-1">
+        <span className="flex-1 rounded-lg bg-white py-2 text-center text-sm font-semibold text-brand shadow-sm">
+          Sign In
+        </span>
+        <Link
+          to="/register"
+          className="flex-1 py-2 text-center text-sm font-semibold text-ink-500 transition hover:text-ink-900"
         >
-          <option value="student">Student</option>
-          <option value="teacher">Teacher</option>
-          <option value="admin">Admin</option>
-        </select>
-        {errors.role && <span className="text-xs text-red-600">{errors.role.message}</span>}
+          Create Account
+        </Link>
+      </div>
+
+      {/* Role selector pills */}
+      <div className="flex flex-col gap-2">
+        <span className="text-xs font-semibold uppercase tracking-wider text-ink-400">
+          Sign in as
+        </span>
+        <div className="grid grid-cols-3 gap-2">
+          {ROLE_OPTIONS.map(({ value, label, icon: Icon, color }) => {
+            const active = selectedRole === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setValue("role", value as LoginFormValues["role"], { shouldValidate: true })}
+                className={`flex flex-col items-center gap-1.5 rounded-xl border-2 py-3 text-xs font-semibold transition ${
+                  active
+                    ? "border-brand bg-brand/5 text-brand shadow-sm"
+                    : "border-ink-200 bg-white text-ink-600 hover:border-ink-300 hover:bg-ink-50"
+                }`}
+              >
+                <Icon className={`size-5 ${active ? "text-brand" : color}`} />
+                {label}
+              </button>
+            );
+          })}
+        </div>
+        {errors.role && (
+          <span className="text-xs text-red-600">{errors.role.message}</span>
+        )}
       </div>
 
       {/* Server error */}
@@ -81,85 +125,110 @@ export function LoginForm() {
         </div>
       )}
 
-      {/* Email */}
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="email" className="text-sm font-medium text-ink-900">Email</label>
-        <input
-          id="email"
-          type="email"
-          autoComplete="email"
-          placeholder="Enter your email"
-          {...register("email")}
-          className="h-12 w-full rounded-xl border border-ink-200 bg-[#f7f8fa] px-4 text-sm text-ink-900 placeholder:text-ink-400 outline-none transition focus:border-ink-900 focus:bg-white focus:ring-2 focus:ring-ink-900/10"
-          aria-invalid={!!errors.email}
-        />
-        {errors.email && <span className="text-xs text-red-600">{errors.email.message}</span>}
-      </div>
-
-      {/* Password */}
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="password" className="text-sm font-medium text-ink-900">Password</label>
-        <div className="relative">
-          <input
-            id="password"
-            type={showPassword ? "text" : "password"}
-            autoComplete="current-password"
-            placeholder="Enter your password"
-            {...register("password")}
-            className="h-12 w-full rounded-xl border border-ink-200 bg-[#f7f8fa] px-4 pr-12 text-sm text-ink-900 placeholder:text-ink-400 outline-none transition focus:border-ink-900 focus:bg-white focus:ring-2 focus:ring-ink-900/10"
-            aria-invalid={!!errors.password}
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword((s) => !s)}
-            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-400 transition hover:text-ink-700"
-            aria-label={showPassword ? "Hide password" : "Show password"}
-          >
-            {showPassword ? <Eye className="size-4" aria-hidden /> : <EyeOff className="size-4" aria-hidden />}
-          </button>
+      {/* Fields */}
+      <div className="flex flex-col gap-4">
+        {/* Email */}
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="email" className="text-xs font-semibold text-ink-700">
+            Email Address
+          </label>
+          <div className="relative">
+            <Mail className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" aria-hidden />
+            <input
+              id="email"
+              type="email"
+              autoComplete="email"
+              placeholder="name@school.edu"
+              {...register("email")}
+              className="h-12 w-full rounded-xl border border-ink-200 bg-white pl-10 pr-4 text-sm text-ink-900 placeholder:text-ink-400 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+              aria-invalid={!!errors.email}
+            />
+          </div>
+          {errors.email && <span className="text-xs text-red-600">{errors.email.message}</span>}
         </div>
-        {errors.password && <span className="text-xs text-red-600">{errors.password.message}</span>}
-      </div>
 
-      {/* Remember me + Forgot password */}
-      <div className="flex items-center justify-between">
-        <label className="flex cursor-pointer items-center gap-2 text-sm text-ink-700">
-          <input type="checkbox" {...register("rememberMe")} className="size-4 rounded border-ink-300 accent-ink-900" />
-          Remember me
+        {/* Password */}
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center justify-between">
+            <label htmlFor="password" className="text-xs font-semibold text-ink-700">
+              Password
+            </label>
+            <Link to="/forgot-password" className="text-xs font-medium text-brand transition hover:underline">
+              Forgot password?
+            </Link>
+          </div>
+          <div className="relative">
+            <Lock className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" aria-hidden />
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
+              placeholder="••••••••"
+              {...register("password")}
+              className="h-12 w-full rounded-xl border border-ink-200 bg-white pl-10 pr-12 text-sm text-ink-900 placeholder:text-ink-400 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+              aria-invalid={!!errors.password}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((s) => !s)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-ink-400 transition hover:text-ink-700"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <Eye className="size-4" aria-hidden /> : <EyeOff className="size-4" aria-hidden />}
+            </button>
+          </div>
+          {errors.password && <span className="text-xs text-red-600">{errors.password.message}</span>}
+        </div>
+
+        {/* Remember me */}
+        <label className="flex cursor-pointer items-center gap-2 text-sm text-ink-600">
+          <input type="checkbox" {...register("rememberMe")} className="size-4 rounded border-ink-300 accent-brand" />
+          Remember me for 30 days
         </label>
-        <Link to="/forgot-password" className="text-sm font-medium text-ink-900 transition hover:underline">
-          Forgot Password
-        </Link>
+
+        {/* Submit */}
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand text-sm font-semibold text-white shadow-[0_2px_8px_0_rgba(0,88,190,0.25)] transition hover:bg-brand/90 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isSubmitting ? (
+            <><Loader2 className="size-4 animate-spin" aria-hidden />Signing in…</>
+          ) : (
+            <>Sign In<ArrowRight className="size-4" aria-hidden /></>
+          )}
+        </button>
       </div>
 
-      {/* Sign In — full-width black button */}
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="flex h-12 w-full items-center justify-center rounded-xl bg-ink-900 text-sm font-semibold text-white transition hover:bg-ink-700 disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        {isSubmitting ? (
-          <><Loader2 className="mr-2 size-4 animate-spin" aria-hidden />Signing in…</>
-        ) : (
-          "Sign In"
-        )}
-      </button>
+      {/* Divider */}
+      <div className="flex items-center gap-3">
+        <div className="h-px flex-1 bg-ink-200" />
+        <span className="text-xs text-ink-400">or continue with</span>
+        <div className="h-px flex-1 bg-ink-200" />
+      </div>
 
-      {/* Google — bordered button */}
-      <button
-        type="button"
-        onClick={() => window.open("https://accounts.google.com/signin", "_blank", "noopener,noreferrer")}
-        className="flex h-12 w-full items-center justify-center gap-2.5 rounded-xl border border-ink-200 bg-white text-sm font-semibold text-ink-900 transition hover:bg-ink-50"
-      >
-        <GoogleIcon className="size-4" />
-        Sign In with Google
-      </button>
+      {/* Social */}
+      <div className="grid grid-cols-2 gap-3">
+        <button
+          type="button"
+          onClick={() => window.open("https://accounts.google.com/signin", "_blank", "noopener,noreferrer")}
+          className="flex h-11 items-center justify-center gap-2 rounded-xl border border-ink-200 bg-white text-xs font-semibold text-ink-700 transition hover:bg-ink-50"
+        >
+          <GoogleIcon className="size-4" /> Google
+        </button>
+        <button
+          type="button"
+          onClick={() => window.open("https://login.microsoftonline.com", "_blank", "noopener,noreferrer")}
+          className="flex h-11 items-center justify-center gap-2 rounded-xl border border-ink-200 bg-white text-xs font-semibold text-ink-700 transition hover:bg-ink-50"
+        >
+          <MicrosoftIcon className="size-4" /> Microsoft
+        </button>
+      </div>
 
-      {/* Footer link */}
       <p className="text-center text-sm text-ink-500">
         Don't have an account?{" "}
-        <Link to="/register" className="font-bold text-ink-900 hover:underline">
-          Sign Up
+        <Link to="/register" className="font-semibold text-brand hover:underline">
+          Create one
         </Link>
       </p>
     </form>

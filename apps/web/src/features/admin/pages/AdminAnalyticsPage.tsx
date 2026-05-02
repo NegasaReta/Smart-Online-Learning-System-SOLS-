@@ -42,7 +42,7 @@ export default function AdminAnalyticsPage() {
     <div className="flex min-h-screen bg-[#f5f5fb] font-sans text-ink-900">
       <AdminSidebar />
       <div className="flex min-w-0 flex-1 flex-col">
-        <AdminTopbar />
+        <AdminTopbar />r
         <main className="mx-auto w-full max-w-[1280px] flex-1 px-6 pb-12 pt-6">
 
           <div className="mb-6 animate-fade-in-up">

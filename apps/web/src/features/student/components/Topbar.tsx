@@ -118,7 +118,7 @@ export function Topbar() {
               </div>
               <ul className="max-h-72 divide-y divide-ink-50 overflow-y-auto">
                 {notifs.length === 0 && (
-                  <li className="px-4 py-6 text-center text-xs text-ink-400">{t("common.allCaught")}</li>
+                  <li className="px-4 py-6 text-center text-xs text-ink-400">All caught up!</li>
                 )}
                 {notifs.map((n) => (
                   <li key={n.id} className={`flex items-start gap-3 px-4 py-3 transition hover:bg-ink-50 ${n.unread ? "bg-brand/5" : ""}`}>
@@ -135,7 +135,7 @@ export function Topbar() {
               </ul>
               <div className="border-t border-ink-100 px-4 py-2.5 text-center">
                 <Link to="/student/schedule" onClick={() => setShowNotifs(false)} className="text-xs font-semibold text-brand hover:underline">
-                  {t("topbar.viewSchedule")}
+                  View schedule
                 </Link>
               </div>
             </div>
@@ -173,30 +173,30 @@ export function Topbar() {
                 <img src="https://i.pravatar.cc/80?img=47" alt="" className="size-10 rounded-full object-cover ring-2 ring-brand/20" />
                 <div>
                   <p className="text-sm font-bold text-ink-900">Elias Bekele</p>
-                  <p className="text-xs text-ink-500">{t("topbar.grade")}</p>
+                  <p className="text-xs text-ink-500">Grade 10 · Student</p>
                 </div>
               </div>
               <div className="py-1.5">
                 <Link to="/student/settings" onClick={() => setShowProfile(false)}
                   className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink-700 transition hover:bg-brand/5 hover:text-brand">
-                  <UserCircle className="size-4" /> {t("topbar.myProfile")}
+                  <UserCircle className="size-4" /> My Profile
                 </Link>
                 <Link to="/student/grades" onClick={() => setShowProfile(false)}
                   className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink-700 transition hover:bg-brand/5 hover:text-brand">
-                  <Star className="size-4" /> {t("topbar.myGrades")}
+                  <Star className="size-4" /> My Grades
                 </Link>
                 <Link to="/student/classes" onClick={() => setShowProfile(false)}
                   className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink-700 transition hover:bg-brand/5 hover:text-brand">
-                  <BookOpen className="size-4" /> {t("topbar.myClasses")}
+                  <BookOpen className="size-4" /> My Classes
                 </Link>
                 <Link to="/student/settings" onClick={() => setShowProfile(false)}
                   className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink-700 transition hover:bg-brand/5 hover:text-brand">
-                  <Settings className="size-4" /> {t("topbar.settings")}
+                  <Settings className="size-4" /> Settings
                 </Link>
               </div>
               <div className="border-t border-ink-100 py-1.5">
                 <Link to="/login" className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-50">
-                  <LogOut className="size-4" /> {t("topbar.logout")}
+                  <LogOut className="size-4" /> Logout
                 </Link>
               </div>
             </div>

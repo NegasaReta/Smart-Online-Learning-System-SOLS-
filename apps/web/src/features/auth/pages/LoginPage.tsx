@@ -3,62 +3,62 @@ import { LoginForm } from "../components/LoginForm";
 
 export default function LoginPage() {
   return (
-    <main className="flex min-h-screen w-full items-center justify-center bg-[#f0f0f0] p-4 font-sans lg:p-8">
-      <div className="flex w-full max-w-5xl overflow-hidden rounded-3xl bg-white shadow-2xl" style={{ minHeight: 680 }}>
+    <main className="flex min-h-screen w-full bg-white font-sans">
+      {/* Left: Brand panel (hidden on mobile) */}
+      <aside
+        aria-hidden
+        className="relative hidden w-1/2 flex-col justify-between overflow-hidden p-8 lg:flex"
+        style={{
+          backgroundColor: "#d8e2ff",
+          backgroundImage:
+            "linear-gradient(141deg, rgba(0,26,66,0.63) 0%, rgba(0,88,190,0.53) 40%, rgba(33,112,228,0.59) 100%), url('https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=1600&q=80')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        {/* Logo */}
+        <div className="relative flex items-center gap-2 text-white">
+          <span className="flex size-8 items-center justify-center rounded-lg bg-white/20 backdrop-blur">
+            <GraduationCap className="size-5" />
+          </span>
+          <span className="text-[32px] font-bold leading-10 tracking-tight">
+            EduSmart K-12
+          </span>
+        </div>
 
-        {/* ── Left: rounded image card ── */}
-        <aside
-          aria-hidden
-          className="relative hidden w-[46%] shrink-0 flex-col justify-between overflow-hidden rounded-3xl p-8 lg:flex"
-          style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=1200&q=90')",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-        >
-          {/* dark gradient overlay — heavier at bottom */}
-          <div className="absolute inset-0 rounded-3xl" style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.18) 40%, rgba(0,0,0,0.72) 100%)" }} />
-
-          {/* Quote label */}
-          <div className="relative flex items-center gap-3">
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/80">A Wise Quote</span>
-            <div className="h-px w-12 bg-white/40" />
-          </div>
-
-          {/* Bottom text */}
-          <div className="relative">
-            <h1 className="font-serif text-[44px] font-bold leading-[1.1] tracking-tight text-white" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
-              Get<br />Everything<br />You Want
-            </h1>
-            <p className="mt-3 text-sm leading-relaxed text-white/70">
-              You can get everything you want if you work hard,<br />
-              trust the process, and stick to the plan.
-            </p>
-          </div>
-        </aside>
-
-        {/* ── Right: form panel ── */}
-        <section className="relative flex flex-1 flex-col justify-between p-8 lg:px-14 lg:py-10">
-          {/* Logo */}
-          <div className="flex items-center gap-2">
-            <GraduationCap className="size-5 text-ink-900" />
-            <span className="text-[15px] font-bold tracking-tight text-ink-900">EduSmart K-12</span>
-          </div>
-
-          {/* Form centred */}
-          <div className="flex flex-1 items-center justify-center">
-            <LoginForm />
-          </div>
-
-          {/* Footer */}
-          <p className="text-center text-sm text-ink-500">
-            Need help?{" "}
-            <a href="#" className="font-semibold text-ink-900 hover:underline">Contact Support</a>
+        {/* Motivational quote */}
+        <div className="relative max-w-[448px] pb-12">
+          <h1 className="text-[48px] font-bold leading-[56px] tracking-tight text-white">
+            Empowering the
+            <br />
+            next generation.
+          </h1>
+          <p className="mt-4 text-lg leading-7 text-brand-100">
+            Join our digital campus to connect, learn, and grow. Everything you
+            need for academic success in one secure platform.
           </p>
-        </section>
+        </div>
 
-      </div>
+        {/* Carousel dots */}
+        <div className="relative flex items-center gap-2">
+          <span className="h-2 w-12 rounded-full bg-brand-100" />
+          <span className="size-2 rounded-full bg-brand-100/50" />
+          <span className="size-2 rounded-full bg-brand-100/50" />
+        </div>
+      </aside>
+
+      {/* Right: Form panel */}
+      <section className="relative flex w-full flex-col items-center justify-center p-8 lg:w-1/2">
+        <LoginForm />
+
+        {/* Footer */}
+        <p className="absolute bottom-6 text-sm text-ink-500">
+          Need help?{" "}
+          <a href="#" className="text-brand hover:underline">
+            Contact Support
+          </a>
+        </p>
+      </section>
     </main>
   );
 }

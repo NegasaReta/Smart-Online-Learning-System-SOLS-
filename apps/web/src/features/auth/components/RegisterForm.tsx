@@ -63,15 +63,12 @@ export function RegisterForm() {
       aria-label="Register form"
     >
       {/* Header */}
-      <div className="flex flex-col items-center gap-1.5 text-center">
-        <h2
-          className="text-[38px] font-bold leading-tight tracking-tight text-ink-900"
-          style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
-        >
-          Create Account
+      <div className="flex flex-col items-center gap-1 text-center">
+        <h2 className="text-[32px] font-bold leading-10 tracking-tight text-ink-900">
+          Create your account
         </h2>
         <p className="text-sm text-ink-500">
-          Fill in your details to get started
+          Fill in your details to get started.
         </p>
       </div>
 
@@ -83,7 +80,7 @@ export function RegisterForm() {
         >
           Sign In
         </Link>
-        <span className="flex-1 rounded-lg bg-white py-2 text-center text-sm font-semibold text-ink-900 shadow-sm">
+        <span className="flex-1 rounded-lg bg-white py-2 text-center text-sm font-semibold text-brand shadow-sm">
           Create Account
         </span>
       </div>
@@ -131,7 +128,7 @@ export function RegisterForm() {
             <input
               id="fullName" type="text" autoComplete="name" placeholder="e.g. Elias Bekele"
               {...register("fullName")}
-              className="h-12 w-full rounded-xl border border-ink-200 bg-[#f7f8fa] pl-10 pr-4 text-sm text-ink-900 placeholder:text-ink-400 outline-none transition focus:border-ink-900 focus:bg-white focus:ring-2 focus:ring-ink-900/10"
+              className="h-12 w-full rounded-xl border border-ink-200 bg-white pl-10 pr-4 text-sm text-ink-900 placeholder:text-ink-400 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
               aria-invalid={!!errors.fullName}
             />
           </div>
@@ -146,7 +143,7 @@ export function RegisterForm() {
             <input
               id="reg-email" type="email" autoComplete="email" placeholder="name@school.edu"
               {...register("email")}
-              className="h-12 w-full rounded-xl border border-ink-200 bg-[#f7f8fa] pl-10 pr-4 text-sm text-ink-900 placeholder:text-ink-400 outline-none transition focus:border-ink-900 focus:bg-white focus:ring-2 focus:ring-ink-900/10"
+              className="h-12 w-full rounded-xl border border-ink-200 bg-white pl-10 pr-4 text-sm text-ink-900 placeholder:text-ink-400 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
               aria-invalid={!!errors.email}
             />
           </div>
@@ -161,7 +158,7 @@ export function RegisterForm() {
             <input
               id="reg-password" type={showPassword ? "text" : "password"} autoComplete="new-password" placeholder="Min. 8 chars, A–Z, 0–9"
               {...register("password")}
-              className="h-12 w-full rounded-xl border border-ink-200 bg-[#f7f8fa] pl-10 pr-12 text-sm text-ink-900 placeholder:text-ink-400 outline-none transition focus:border-ink-900 focus:bg-white focus:ring-2 focus:ring-ink-900/10"
+              className="h-12 w-full rounded-xl border border-ink-200 bg-white pl-10 pr-12 text-sm text-ink-900 placeholder:text-ink-400 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
               aria-invalid={!!errors.password}
             />
             <button type="button" onClick={() => setShowPassword((s) => !s)}
@@ -186,7 +183,7 @@ export function RegisterForm() {
 
         {/* Submit */}
         <button type="submit" disabled={isSubmitting}
-          className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-ink-900 text-sm font-semibold text-white transition hover:bg-ink-700 disabled:cursor-not-allowed disabled:opacity-60">
+          className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand text-sm font-semibold text-white shadow-[0_2px_8px_0_rgba(0,88,190,0.25)] transition hover:bg-brand/90 disabled:cursor-not-allowed disabled:opacity-60">
           {isSubmitting ? (
             <><Loader2 className="size-4 animate-spin" aria-hidden />Creating account…</>
           ) : (
@@ -203,15 +200,22 @@ export function RegisterForm() {
       </div>
 
       {/* Social */}
-      <button type="button"
-        onClick={() => window.open("https://accounts.google.com/signup", "_blank", "noopener,noreferrer")}
-        className="flex h-12 w-full items-center justify-center gap-2.5 rounded-xl border border-ink-200 bg-white text-sm font-semibold text-ink-900 transition hover:bg-ink-50">
-        <GoogleIcon className="size-4" /> Sign Up with Google
-      </button>
+      <div className="grid grid-cols-2 gap-3">
+        <button type="button"
+          onClick={() => window.open("https://accounts.google.com/signup", "_blank", "noopener,noreferrer")}
+          className="flex h-11 items-center justify-center gap-2 rounded-xl border border-ink-200 bg-white text-xs font-semibold text-ink-700 transition hover:bg-ink-50">
+          <GoogleIcon className="size-4" /> Google
+        </button>
+        <button type="button"
+          onClick={() => window.open("https://signup.live.com/signup", "_blank", "noopener,noreferrer")}
+          className="flex h-11 items-center justify-center gap-2 rounded-xl border border-ink-200 bg-white text-xs font-semibold text-ink-700 transition hover:bg-ink-50">
+          <MicrosoftIcon className="size-4" /> Microsoft
+        </button>
+      </div>
 
       <p className="text-center text-sm text-ink-500">
         Already have an account?{" "}
-        <Link to="/login" className="font-bold text-ink-900 hover:underline">Sign In</Link>
+        <Link to="/login" className="font-semibold text-brand hover:underline">Sign in</Link>
       </p>
     </form>
   );
@@ -228,4 +232,14 @@ function GoogleIcon({ className }: { className?: string }) {
   );
 }
 
+function MicrosoftIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden>
+      <path fill="#F25022" d="M1 1h10v10H1z" />
+      <path fill="#7FBA00" d="M13 1h10v10H13z" />
+      <path fill="#00A4EF" d="M1 13h10v10H1z" />
+      <path fill="#FFB900" d="M13 13h10v10H13z" />
+    </svg>
+  );
+}
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Globe } from "lucide-react";
+import { ChevronDown, Globe, Check } from "lucide-react";
 import { LOCALES, useT, type Locale } from "@/i18n/I18nProvider";
 
 /**
