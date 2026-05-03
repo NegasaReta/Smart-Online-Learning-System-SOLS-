@@ -12,6 +12,7 @@ import {
   type ThemeMode,
   type FontSize,
 } from "../../student/settings/preferencesStore";
+import { useT, LOCALES } from "../../../i18n/I18nProvider";
 
 const TABS = [
   { id: "profile",       label: "Profile",       icon: User },
@@ -412,19 +413,18 @@ const FONT_OPTIONS: { value: FontSize; label: string; px: string; cls: string }[
   { value: "xl",       label: "Extra",    px: "20px", cls: "text-xl"  },
 ];
 
-const LANG_OPTIONS = [
-  { value: "en", label: "English", flag: "🇬🇧" },
-  { value: "am", label: "Amharic", flag: "🇪🇹" },
-  { value: "om", label: "Afan Oromo", flag: "🇪🇹" },
-] as const;
-
 function PreferencesTab({ onToast }: { onToast: (msg: string, tone?: "success" | "error") => void }) {
   const prefs = usePreferences();
+  const { locale, setLocale } = useT();
 
   // Helpers — every change is persisted + applied immediately by setPreferences.
   function pickTheme(theme: ThemeMode)            { setPreferences({ ...prefs, theme }); onToast(`Theme: ${theme}`); }
   function pickFontSize(fontSize: FontSize)       { setPreferences({ ...prefs, fontSize }); onToast(`Font size: ${fontSize}`); }
-  function pickLang(language: typeof prefs.language) { setPreferences({ ...prefs, language }); onToast("Language updated"); }
+  function pickLang(language: typeof prefs.language) {
+    setPreferences({ ...prefs, language });
+    setLocale(language); // syncs with I18nProvider → topbar selector + t() calls
+    onToast(`Language: ${LOCALES.find(l => l.code === language)?.label ?? language}`);
+  }
   function toggleHC()                              { setPreferences({ ...prefs, highContrast: !prefs.highContrast }); }
 
   return (
@@ -468,15 +468,23 @@ function PreferencesTab({ onToast }: { onToast: (msg: string, tone?: "success" |
 
       {/* Language */}
       <div className="rounded-2xl border border-ink-200 bg-white p-6 shadow-card">
-        <h2 className="mb-5 flex items-center gap-2 text-base font-bold text-ink-900"><Languages className="size-4 text-violet-600" />Language</h2>
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-          {LANG_OPTIONS.map(l => (
-            <button key={l.value} onClick={() => pickLang(l.value)}
-              className={`flex items-center gap-2 rounded-xl border-2 p-3 text-sm font-semibold transition ${prefs.language === l.value ? "border-violet-600 bg-violet-50 text-violet-700" : "border-ink-200 text-ink-600 hover:border-violet-300"}`}>
-              <span className="text-xl">{l.flag}</span>{l.label}
-              {prefs.language === l.value && <Check className="ml-auto size-4 text-violet-600" />}
-            </button>
-          ))}
+        <h2 className="mb-1 flex items-center gap-2 text-base font-bold text-ink-900"><Languages className="size-4 text-violet-600" />Language</h2>
+        <p className="mb-5 text-xs text-ink-500">Choose your preferred display language — applied across the entire app</p>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {LOCALES.map(l => {
+            const active = locale === l.code;
+            return (
+              <button key={l.code} onClick={() => pickLang(l.code)}
+                className={`relative flex items-center gap-3 rounded-xl border-2 p-3 text-left transition ${active ? "border-violet-600 bg-violet-50" : "border-ink-200 hover:border-violet-300 hover:bg-ink-50"}`}>
+                <span className="text-2xl">{l.flag}</span>
+                <span className="flex min-w-0 flex-col leading-tight">
+                  <span className={`text-sm font-semibold ${active ? "text-violet-700" : "text-ink-900"}`}>{l.label}</span>
+                  <span className="truncate text-xs text-ink-500">{l.native}</span>
+                </span>
+                {active && <Check className="absolute right-2 top-2 size-4 text-violet-600" />}
+              </button>
+            );
+          })}
         </div>
       </div>
 

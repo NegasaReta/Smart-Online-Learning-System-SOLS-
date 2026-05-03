@@ -1,14 +1,11 @@
 import { Search, Bell, ChevronDown, Settings, UserCircle, LogOut, User, Shield, Globe } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
-const LANGUAGES = [
-  { code: "en", label: "English",  flag: "🇬🇧" },
-  { code: "am", label: "Amharic",  flag: "🇪🇹" },
-  { code: "fr", label: "French",   flag: "🇫🇷" },
-  { code: "ar", label: "Arabic",   flag: "🇸🇦" },
-  { code: "zh", label: "Chinese",  flag: "🇨🇳" },
-];
+import { useT, LOCALES } from "../../../i18n/I18nProvider";
+import {
+  getPreferences,
+  setPreferences,
+} from "../../student/settings/preferencesStore";
 
 const NOTIFICATIONS = [
   { id: "n1", text: "New student registered: Amara Osei",        time: "2 min ago",  unread: true },
@@ -22,7 +19,8 @@ export function AdminTopbar() {
   const [showNotifs, setShowNotifs] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showLang, setShowLang] = useState(false);
-  const [activeLang, setActiveLang] = useState(LANGUAGES[0]);
+  const { locale, setLocale, t } = useT();
+  const activeLang = LOCALES.find(l => l.code === locale) ?? LOCALES[0];
   const [notifs, setNotifs] = useState(NOTIFICATIONS);
   const notifsRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -59,7 +57,7 @@ export function AdminTopbar() {
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="What do you want to find?"
+          placeholder={t("admin.topbar.searchPlaceholder")}
           className="h-10 w-full rounded-full border border-ink-200 bg-ink-50 pl-9 pr-4 text-sm text-ink-900 placeholder:text-ink-400 outline-none transition focus:border-violet-400 focus:bg-white focus:ring-2 focus:ring-violet-200"
         />
       </label>
@@ -94,8 +92,8 @@ export function AdminTopbar() {
           {showNotifs && (
             <div className="absolute right-0 top-11 z-30 w-80 rounded-2xl border border-ink-200 bg-white shadow-xl animate-scale-in">
               <div className="flex items-center justify-between border-b border-ink-100 px-4 py-3">
-                <h3 className="text-sm font-bold text-ink-900">Notifications</h3>
-                <button onClick={markAllRead} className="text-xs font-semibold text-violet-600 hover:underline">Mark all read</button>
+                <h3 className="text-sm font-bold text-ink-900">{t("admin.topbar.notifications")}</h3>
+                <button onClick={markAllRead} className="text-xs font-semibold text-violet-600 hover:underline">{t("admin.topbar.markAllRead")}</button>
               </div>
               <ul className="max-h-72 overflow-y-auto divide-y divide-ink-50">
                 {notifs.map(n => (
@@ -110,7 +108,7 @@ export function AdminTopbar() {
               </ul>
               <div className="border-t border-ink-100 px-4 py-2.5 text-center">
                 <Link to="/admin/announcements" onClick={() => setShowNotifs(false)} className="text-xs font-semibold text-violet-600 hover:underline">
-                  View all notifications
+                  {t("admin.topbar.viewAllNotifs")}
                 </Link>
               </div>
             </div>
@@ -128,24 +126,33 @@ export function AdminTopbar() {
             <Globe className="size-4 text-ink-400" />
             <span>{activeLang.flag}</span>
             <span className="hidden sm:block">{activeLang.code.toUpperCase()}</span>
+            <span className="sr-only">{activeLang.label}</span>
             <ChevronDown className={`size-3.5 text-ink-400 transition-transform ${showLang ? "rotate-180" : ""}`} aria-hidden />
           </button>
 
           {showLang && (
-            <div className="absolute right-0 top-11 z-30 w-44 overflow-hidden rounded-2xl border border-ink-200 bg-white shadow-xl animate-scale-in">
-              <p className="border-b border-ink-100 px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-ink-400">Language</p>
+            <div className="absolute right-0 top-11 z-30 w-52 overflow-hidden rounded-2xl border border-ink-200 bg-white shadow-xl animate-scale-in">
+              <p className="border-b border-ink-100 px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-ink-400">{t("admin.topbar.language")}</p>
               <ul className="py-1">
-                {LANGUAGES.map(lang => (
+                {LOCALES.map(lang => (
                   <li key={lang.code}>
                     <button
                       type="button"
-                      onClick={() => { setActiveLang(lang); setShowLang(false); }}
+                      onClick={() => {
+                        setLocale(lang.code);
+                        // Keep the preferencesStore in sync so the Account page shows the same value
+                        setPreferences({ ...getPreferences(), language: lang.code });
+                        setShowLang(false);
+                      }}
                       className={`flex w-full items-center gap-2.5 px-3 py-2 text-sm transition hover:bg-violet-50 ${
                         activeLang.code === lang.code ? "font-semibold text-violet-700" : "text-ink-700"
                       }`}
                     >
                       <span className="text-base">{lang.flag}</span>
-                      {lang.label}
+                      <span className="flex flex-col items-start leading-tight">
+                        <span>{lang.label}</span>
+                        <span className="text-[10px] text-ink-400">{lang.native}</span>
+                      </span>
                       {activeLang.code === lang.code && (
                         <span className="ml-auto size-1.5 rounded-full bg-violet-500" />
                       )}
@@ -194,15 +201,15 @@ export function AdminTopbar() {
               <div className="py-1.5">
                 <Link to="/admin/account" onClick={() => setShowProfile(false)}
                   className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink-700 transition hover:bg-violet-50 hover:text-violet-700">
-                  <UserCircle className="size-4" /> My Account
+                  <UserCircle className="size-4" /> {t("admin.topbar.myAccount")}
                 </Link>
                 <Link to="/admin/account" onClick={() => setShowProfile(false)}
                   className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink-700 transition hover:bg-violet-50 hover:text-violet-700">
-                  <User className="size-4" /> Edit Profile
+                  <User className="size-4" /> {t("admin.topbar.editProfile")}
                 </Link>
                 <Link to="/admin/account" onClick={() => setShowProfile(false)}
                   className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink-700 transition hover:bg-violet-50 hover:text-violet-700">
-                  <Settings className="size-4" /> Settings
+                  <Settings className="size-4" /> {t("admin.topbar.settings")}
                 </Link>
               </div>
 
@@ -213,7 +220,7 @@ export function AdminTopbar() {
                   onClick={handleLogout}
                   className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-50"
                 >
-                  <LogOut className="size-4" /> Logout
+                  <LogOut className="size-4" /> {t("admin.topbar.logout")}
                 </button>
               </div>
             </div>

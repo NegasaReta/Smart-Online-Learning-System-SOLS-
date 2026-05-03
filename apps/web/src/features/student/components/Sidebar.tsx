@@ -80,7 +80,7 @@ export function Sidebar() {
         </Link>
         <Link
           to="/login"
-          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-ink-700 transition hover:bg-ink-100"
+          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50"
         >
           <LogOut className="size-[18px]" aria-hidden />
           {t("sidebar.logout")}

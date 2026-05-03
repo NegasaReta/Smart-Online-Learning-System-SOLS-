@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { AdminSidebar } from "../components/AdminSidebar";
 import { AdminTopbar } from "../components/AdminTopbar";
+import { useT } from "../../../i18n/I18nProvider";
 
 type EnrollStatus = "Approved" | "Pending" | "Rejected";
 
@@ -66,6 +67,7 @@ const PAGE_SIZE = 7;
 const STATUSES: Array<"All" | EnrollStatus> = ["All", "Approved", "Pending", "Rejected"];
 
 export default function AdminEnrollmentsPage() {
+  const { t } = useT();
   const [enrollments, setEnrollments] = useState<Enrollment[]>(INITIAL);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"All" | EnrollStatus>("All");
@@ -112,35 +114,40 @@ export default function AdminEnrollmentsPage() {
         <AdminTopbar />
         <main className="mx-auto w-full max-w-[1280px] flex-1 px-6 pb-12 pt-6">
 
-          {/* Header */}
-          <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between animate-fade-in-up">
-            <div>
-              <h1 className="text-2xl font-bold text-ink-900">Enrollments</h1>
-              <p className="text-sm text-ink-500">{filtered.length} enrollment records</p>
+          {/* Hero Header */}
+          <div className="mb-6 overflow-hidden rounded-2xl bg-gradient-to-r from-violet-600 via-fuchsia-500 to-orange-400 p-6 shadow-lg animate-fade-in-up">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight text-white">{t("admin.pages.enrollments")}</h1>
+                <p className="mt-1 text-sm text-white/85">{t("admin.pages.enrollmentsSub", { count: filtered.length })}</p>
+              </div>
+              <button onClick={() => setShowWizard(true)}
+                className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-violet-700 shadow-md transition hover:scale-[1.03] hover:shadow-xl">
+                <Plus className="size-4" /> {t("admin.pages.enrollStudent")}
+              </button>
             </div>
-            <button onClick={() => setShowWizard(true)}
-              className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-700 hover:scale-[1.02] active:scale-100">
-              <Plus className="size-4" /> Enroll Student
-            </button>
           </div>
 
-          {/* Dashboard-style stat cards */}
-          <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4 animate-fade-in-up" style={{ animationDelay: "40ms" }}>
+          {/* Gradient stat cards */}
+          <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
             {[
-              { label: "Total Enrollments", value: statValues.total, icon: ClipboardList, bg: "bg-violet-50", iBg: "bg-violet-100", color: "text-violet-600" },
-              { label: "Approved",          value: statValues.approved, icon: CheckCircle2, bg: "bg-emerald-50", iBg: "bg-emerald-100", color: "text-emerald-600" },
-              { label: "Pending",           value: statValues.pending, icon: Clock, bg: "bg-amber-50", iBg: "bg-amber-100", color: "text-amber-600" },
-              { label: "Rejected",          value: statValues.rejected, icon: XCircle, bg: "bg-red-50", iBg: "bg-red-100", color: "text-red-600" },
+              { label: "Total Enrollments", value: statValues.total,    icon: ClipboardList, gradient: "from-violet-500 via-purple-500 to-fuchsia-500" },
+              { label: "Approved",          value: statValues.approved, icon: CheckCircle2,  gradient: "from-emerald-500 via-teal-500 to-cyan-500" },
+              { label: "Pending",           value: statValues.pending,  icon: Clock,         gradient: "from-amber-500 via-orange-500 to-yellow-500" },
+              { label: "Rejected",          value: statValues.rejected, icon: XCircle,       gradient: "from-rose-500 via-red-500 to-pink-500" },
             ].map((s, i) => (
-              <div key={s.label} className={`group flex items-center justify-between rounded-2xl border border-ink-200 ${s.bg} p-5 shadow-card transition hover:shadow-md hover:scale-[1.02] animate-fade-in-up cursor-default`}
-                style={{ animationDelay: `${i * 40}ms` }}>
-                <div>
-                  <p className="text-xs font-semibold text-ink-500">{s.label}</p>
-                  <p className="mt-1 text-2xl font-bold text-ink-900">{s.value}</p>
+              <div key={s.label} className={`group relative overflow-hidden rounded-2xl bg-gradient-to-br ${s.gradient} p-5 text-white shadow-md ring-1 ring-white/20 transition animate-fade-in-up hover:shadow-xl hover:scale-[1.03]`}
+                style={{ animationDelay: `${i * 60}ms` }}>
+                <span className="pointer-events-none absolute -right-6 -top-6 size-24 rounded-full bg-white/15 blur-2xl" />
+                <div className="relative flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-white/85">{s.label}</p>
+                    <p className="mt-1 text-2xl font-bold text-white">{s.value}</p>
+                  </div>
+                  <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/20 ring-1 ring-white/30 backdrop-blur transition group-hover:scale-110 group-hover:rotate-6">
+                    <s.icon className="size-5" aria-hidden />
+                  </span>
                 </div>
-                <span className={`flex size-12 items-center justify-center rounded-2xl ${s.iBg} ${s.color} transition group-hover:scale-110`}>
-                  <s.icon className="size-6" aria-hidden />
-                </span>
               </div>
             ))}
           </div>

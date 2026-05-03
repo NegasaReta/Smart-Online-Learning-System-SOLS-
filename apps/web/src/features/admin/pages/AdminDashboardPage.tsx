@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { AdminSidebar } from "../components/AdminSidebar";
 import { AdminTopbar } from "../components/AdminTopbar";
+import { useT } from "../../../i18n/I18nProvider";
 import {
   fetchStatCards,
   fetchExamResults,
@@ -47,6 +48,7 @@ const CHART_PERIODS = ["This Week", "This Month", "This Year"] as const;
 
 export default function AdminDashboardPage() {
   const navigate = useNavigate();
+  const { t } = useT();
   const [stats, setStats] = useState<StatCard[]>([]);
   const [examData, setExamData] = useState<ExamResultPoint[]>([]);
   const [gender, setGender] = useState<StudentGenderSplit | null>(null);
@@ -92,17 +94,22 @@ export default function AdminDashboardPage() {
       <div className="flex min-w-0 flex-1 flex-col">
         <AdminTopbar />
         <main className="mx-auto w-full max-w-[1280px] flex-1 px-6 pb-12 pt-6">
-          {/* Page title + date */}
-          <div className="mb-6 flex items-center justify-between animate-fade-in-up">
-            <h1 className="text-2xl font-bold tracking-tight text-ink-900">Admin Dashboard</h1>
-            <span className="hidden items-center gap-1.5 text-xs font-medium text-ink-500 sm:flex">
-              <Calendar className="size-3.5" aria-hidden />
-              {new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
-            </span>
+          {/* Hero header */}
+          <div className="mb-6 overflow-hidden rounded-2xl bg-gradient-to-r from-violet-600 via-fuchsia-500 to-orange-400 p-6 shadow-lg animate-fade-in-up">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight text-white">{t("admin.pages.welcome")}</h1>
+                <p className="mt-1 text-sm text-white/85">{t("admin.pages.welcomeSub")}</p>
+              </div>
+              <span className="inline-flex items-center gap-2 rounded-xl bg-white/15 px-3 py-2 text-xs font-semibold text-white backdrop-blur ring-1 ring-white/30">
+                <Calendar className="size-3.5" aria-hidden />
+                {new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+              </span>
+            </div>
           </div>
 
-          {/* Stat cards — clickable with trends */}
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 animate-fade-in-up">
+          {/* Stat cards — gradient, clickable with trends */}
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             {stats.map((s, i) => (
               <StatCardTile key={s.id} card={s} delay={i * 60} onClick={() => navigate(STAT_LINKS[s.iconKey] || "/admin/dashboard")} />
             ))}
@@ -287,28 +294,40 @@ const TRENDS: Record<string, { value: string; up: boolean }> = {
   earnings: { value: "-2%", up: false },
 };
 
+const GRADIENTS: Record<string, string> = {
+  students: "from-violet-500 via-purple-500 to-fuchsia-500",
+  teachers: "from-cyan-500 via-sky-500 to-blue-500",
+  parents:  "from-orange-500 via-amber-500 to-rose-500",
+  earnings: "from-emerald-500 via-teal-500 to-cyan-500",
+};
+
 function StatCardTile({ card, delay, onClick }: { card: StatCard; delay: number; onClick: () => void }) {
   const trend = TRENDS[card.iconKey];
+  const gradient = GRADIENTS[card.iconKey] || "from-violet-500 to-fuchsia-500";
   return (
-    <div
+    <button
       onClick={onClick}
-      className={`group flex items-center justify-between rounded-2xl border border-ink-200 p-5 shadow-card animate-fade-in-up cursor-pointer transition hover:shadow-md hover:scale-[1.02] ${card.bgClass}`}
+      className={`group relative overflow-hidden rounded-2xl bg-gradient-to-br ${gradient} p-5 text-left text-white shadow-md ring-1 ring-white/20 transition animate-fade-in-up cursor-pointer hover:shadow-xl hover:scale-[1.03]`}
       style={{ animationDelay: `${delay}ms` }}
     >
-      <div>
-        <p className="text-xs font-semibold text-ink-500">{card.label}</p>
-        <p className="mt-1 text-2xl font-bold text-ink-900">{card.value}</p>
-        {trend && (
-          <span className={`mt-1.5 inline-flex items-center gap-0.5 text-[10px] font-bold ${trend.up ? "text-emerald-600" : "text-red-500"}`}>
-            {trend.up ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}
-            {trend.value} this month
-          </span>
-        )}
+      {/* Decorative blob */}
+      <span className="pointer-events-none absolute -right-6 -top-6 size-24 rounded-full bg-white/15 blur-2xl" />
+      <div className="relative flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wide text-white/85">{card.label}</p>
+          <p className="mt-1 text-2xl font-bold text-white">{card.value}</p>
+          {trend && (
+            <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur">
+              {trend.up ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}
+              {trend.value} this month
+            </span>
+          )}
+        </div>
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/20 text-white ring-1 ring-white/30 backdrop-blur transition group-hover:scale-110 group-hover:rotate-6">
+          <StatIcon iconKey={card.iconKey} />
+        </span>
       </div>
-      <span className={`flex size-12 items-center justify-center rounded-2xl transition group-hover:scale-110 ${card.iconBgClass} ${card.iconColorClass}`}>
-        <StatIcon iconKey={card.iconKey} />
-      </span>
-    </div>
+    </button>
   );
 }
 

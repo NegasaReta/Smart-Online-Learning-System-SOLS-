@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { AdminSidebar } from "../components/AdminSidebar";
 import { AdminTopbar } from "../components/AdminTopbar";
+import { useT } from "../../../i18n/I18nProvider";
 
 type Course = {
   id: string;
@@ -53,6 +54,7 @@ const STATUS_COLORS: Record<Course["status"], string> = {
 const SUBJECTS = ["Biology","Mathematics","Physics","Chemistry","Literature","History","CS","Science","Geography","Art"];
 
 export default function AdminCoursesPage() {
+  const { t } = useT();
   const [courses, setCourses] = useState<Course[]>(INITIAL_COURSES);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"All" | Course["status"]>("All");
@@ -90,34 +92,39 @@ export default function AdminCoursesPage() {
         <AdminTopbar />
         <main className="mx-auto w-full max-w-[1280px] flex-1 px-6 pb-12 pt-6">
 
-          {/* Header */}
-          <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between animate-fade-in-up">
-            <div>
-              <h1 className="text-2xl font-bold text-ink-900">Courses</h1>
-              <p className="text-sm text-ink-500">{filtered.length} courses available</p>
+          {/* Hero Header */}
+          <div className="mb-6 overflow-hidden rounded-2xl bg-gradient-to-r from-violet-600 via-fuchsia-500 to-orange-400 p-6 shadow-lg animate-fade-in-up">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight text-white">{t("admin.pages.courses")}</h1>
+                <p className="mt-1 text-sm text-white/85">{t("admin.pages.coursesSub", { count: filtered.length })}</p>
+              </div>
+              <button onClick={() => setShowWizard(true)}
+                className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-violet-700 shadow-md transition hover:scale-[1.03] hover:shadow-xl">
+                <Plus className="size-4" /> {t("admin.pages.newCourse")}
+              </button>
             </div>
-            <button onClick={() => setShowWizard(true)}
-              className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-700 hover:scale-[1.02] active:scale-100">
-              <Plus className="size-4" /> New Course
-            </button>
           </div>
 
-          {/* Stat strip */}
-          <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4 animate-fade-in-up" style={{ animationDelay: "40ms" }}>
+          {/* Gradient stat cards */}
+          <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
             {[
-              { label: "Total Courses", value: courses.length, icon: BookOpen, bg: "bg-violet-50", iBg: "bg-violet-100", color: "text-violet-600" },
-              { label: "Active", value: courses.filter(c => c.status === "Active").length, icon: Check, bg: "bg-emerald-50", iBg: "bg-emerald-100", color: "text-emerald-600" },
-              { label: "Draft", value: courses.filter(c => c.status === "Draft").length, icon: FileText, bg: "bg-amber-50", iBg: "bg-amber-100", color: "text-amber-600" },
-              { label: "Total Students", value: courses.reduce((s, c) => s + c.students, 0), icon: GraduationCap, bg: "bg-blue-50", iBg: "bg-blue-100", color: "text-blue-600" },
+              { label: "Total Courses",  value: courses.length, icon: BookOpen,      gradient: "from-violet-500 via-purple-500 to-fuchsia-500" },
+              { label: "Active",         value: courses.filter(c => c.status === "Active").length, icon: Check,    gradient: "from-emerald-500 via-teal-500 to-cyan-500" },
+              { label: "Draft",          value: courses.filter(c => c.status === "Draft").length,  icon: FileText, gradient: "from-amber-500 via-orange-500 to-rose-500" },
+              { label: "Total Students", value: courses.reduce((s, c) => s + c.students, 0), icon: GraduationCap,  gradient: "from-blue-500 via-sky-500 to-indigo-500" },
             ].map((s, i) => (
-              <div key={s.label} className={`group flex items-center justify-between rounded-2xl border border-ink-200 ${s.bg} p-4 shadow-card transition hover:shadow-md hover:scale-[1.02] animate-fade-in-up`} style={{ animationDelay: `${i * 40}ms` }}>
-                <div>
-                  <p className="text-xs font-semibold text-ink-500">{s.label}</p>
-                  <p className="mt-1 text-2xl font-bold text-ink-900">{s.value}</p>
+              <div key={s.label} className={`group relative overflow-hidden rounded-2xl bg-gradient-to-br ${s.gradient} p-5 text-white shadow-md ring-1 ring-white/20 transition animate-fade-in-up hover:shadow-xl hover:scale-[1.03]`} style={{ animationDelay: `${i * 60}ms` }}>
+                <span className="pointer-events-none absolute -right-6 -top-6 size-24 rounded-full bg-white/15 blur-2xl" />
+                <div className="relative flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-white/85">{s.label}</p>
+                    <p className="mt-1 text-2xl font-bold text-white">{s.value}</p>
+                  </div>
+                  <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/20 ring-1 ring-white/30 backdrop-blur transition group-hover:scale-110 group-hover:rotate-6">
+                    <s.icon className="size-5" aria-hidden />
+                  </span>
                 </div>
-                <span className={`flex size-11 items-center justify-center rounded-2xl ${s.iBg} ${s.color} transition group-hover:scale-110`}>
-                  <s.icon className="size-5" aria-hidden />
-                </span>
               </div>
             ))}
           </div>

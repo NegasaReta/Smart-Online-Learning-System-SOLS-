@@ -22,37 +22,40 @@ import {
 import type { ComponentType, SVGProps } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useState } from "react";
+import { useT } from "../../../i18n/I18nProvider";
 
 type NavItem = {
   key: string;
-  label: string;
+  /** Translation key under `admin.sidebar.*` */
+  tKey: string;
   icon: ComponentType<SVGProps<SVGSVGElement>>;
   to?: string;
   badge?: number;
-  children?: { label: string; to: string }[];
+  children?: { tKey: string; to: string }[];
 };
 
 const items: NavItem[] = [
-  { key: "dashboard",      label: "Dashboard",        icon: LayoutDashboard, to: "/admin/dashboard" },
-  { key: "teachers",       label: "Teachers",          icon: GraduationCap,   to: "/admin/teachers" },
-  { key: "parents",        label: "Parents",           icon: Users,           to: "/admin/parents" },
-  { key: "courses",        label: "Courses",           icon: BookOpen,        to: "/admin/courses" },
-  { key: "enrollments",    label: "Enrollments",       icon: ClipboardList,   to: "/admin/enrollments" },
-  { key: "calendar",       label: "Calendar",          icon: CalendarDays,    to: "/admin/calendar" },
-  { key: "tasks",          label: "Tasks",             icon: CheckSquare,     to: "/admin/tasks" },
-  { key: "students",       label: "Students",          icon: UsersRound,      to: "/admin/students" },
-  { key: "attendance",     label: "Attendance",        icon: ClipboardCheck,  to: "/admin/attendance" },
-  { key: "exams",          label: "Exams",             icon: FileText,        to: "/admin/exams" },
-  { key: "reports",        label: "Reports",           icon: BarChart3,       to: "/admin/reports" },
-  { key: "announcements",  label: "Announcements",     icon: Megaphone,       to: "/admin/announcements", badge: 2 },
-  { key: "userManagement", label: "User Management",   icon: UserCog,         to: "/admin/users" },
-  { key: "analytics",      label: "Analytics & Usage", icon: LineChart,       to: "/admin/analytics" },
-  { key: "managePages",    label: "Manage Pages",      icon: LayoutGrid,      to: "/admin/manage-pages" },
-  { key: "account",        label: "Account",           icon: UserCircle,      to: "/admin/account" },
+  { key: "dashboard",      tKey: "dashboard",      icon: LayoutDashboard, to: "/admin/dashboard" },
+  { key: "teachers",       tKey: "teachers",       icon: GraduationCap,   to: "/admin/teachers" },
+  { key: "parents",        tKey: "parents",        icon: Users,           to: "/admin/parents" },
+  { key: "courses",        tKey: "courses",        icon: BookOpen,        to: "/admin/courses" },
+  { key: "enrollments",    tKey: "enrollments",    icon: ClipboardList,   to: "/admin/enrollments" },
+  { key: "calendar",       tKey: "calendar",       icon: CalendarDays,    to: "/admin/calendar" },
+  { key: "tasks",          tKey: "tasks",          icon: CheckSquare,     to: "/admin/tasks" },
+  { key: "students",       tKey: "students",       icon: UsersRound,      to: "/admin/students" },
+  { key: "attendance",     tKey: "attendance",     icon: ClipboardCheck,  to: "/admin/attendance" },
+  { key: "exams",          tKey: "exams",          icon: FileText,        to: "/admin/exams" },
+  { key: "reports",        tKey: "reports",        icon: BarChart3,       to: "/admin/reports" },
+  { key: "announcements",  tKey: "announcements",  icon: Megaphone,       to: "/admin/announcements", badge: 2 },
+  { key: "userManagement", tKey: "userManagement", icon: UserCog,         to: "/admin/users" },
+  { key: "analytics",      tKey: "analytics",      icon: LineChart,       to: "/admin/analytics" },
+  { key: "managePages",    tKey: "managePages",    icon: LayoutGrid,      to: "/admin/manage-pages" },
+  { key: "account",        tKey: "account",        icon: UserCircle,      to: "/admin/account" },
 ];
 
 export function AdminSidebar() {
   const location = useLocation();
+  const { t } = useT();
 
   return (
     <aside className="sticky top-0 hidden h-screen w-[240px] shrink-0 flex-col border-r border-ink-200 bg-white px-3 py-5 md:flex">
@@ -90,7 +93,7 @@ export function AdminSidebar() {
               {({ isActive }) => (
                 <>
                   <item.icon className="size-[18px] shrink-0" aria-hidden />
-                  <span className="flex-1">{item.label}</span>
+                  <span className="flex-1">{t(`admin.sidebar.${item.tKey}`)}</span>
                   {item.badge ? (
                     <span className={`ml-auto flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-bold ${isActive ? "bg-white/25 text-white" : "bg-violet-100 text-violet-700"}`}>
                       {item.badge}
@@ -110,14 +113,14 @@ export function AdminSidebar() {
           className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-ink-700 transition hover:bg-ink-100"
         >
           <HelpCircle className="size-[18px]" aria-hidden />
-          Help Center
+          {t("admin.sidebar.helpCenter")}
         </a>
         <a
           href="/login"
-          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-ink-700 transition hover:bg-ink-100"
+          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-50"
         >
           <LogOut className="size-[18px]" aria-hidden />
-          Logout
+          {t("admin.sidebar.logout")}
         </a>
       </div>
     </aside>
@@ -131,6 +134,7 @@ function CollapseGroup({
   item: NavItem;
   pathname: string;
 }) {
+  const { t } = useT();
   const isChildActive = item.children?.some((c) =>
     pathname.startsWith(c.to),
   );
@@ -148,7 +152,7 @@ function CollapseGroup({
         }`}
       >
         <item.icon className="size-[18px] shrink-0" aria-hidden />
-        <span className="flex-1 text-left">{item.label}</span>
+        <span className="flex-1 text-left">{t(`admin.sidebar.${item.tKey}`)}</span>
         <ChevronDown
           className={`size-4 transition-transform ${open ? "rotate-180" : ""}`}
           aria-hidden
@@ -168,7 +172,7 @@ function CollapseGroup({
                 }`
               }
             >
-              {child.label}
+              {t(`admin.sidebar.${child.tKey}`)}
             </NavLink>
           ))}
         </div>
