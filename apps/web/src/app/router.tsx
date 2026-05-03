@@ -35,6 +35,8 @@ import AdminMessagesPage from "@/features/admin/pages/AdminMessagesPage";
 import AdminAnnouncementsPage from "@/features/admin/pages/AdminAnnouncementsPage";
 import AdminEnrollmentsPage from "@/features/admin/pages/AdminEnrollmentsPage";
 import AdminManagePagesPage from "@/features/admin/pages/AdminManagePagesPage";
+import { ParentPortalRoot } from "@/features/parent/ParentPortalRoot";
+import { TeacherPortal } from "@/features/teacher/TeacherPortal";
 
 // When Clerk isn't configured, auth routes still render so the pages can be
 // previewed without a backend setup. Set VITE_AUTH_PREVIEW=false to disable.
@@ -101,6 +103,12 @@ export function AppRouter() {
       <Route path="/admin/announcements" element={<AdminAnnouncementsPage />} />
       <Route path="/admin/enrollments" element={<AdminEnrollmentsPage />} />
       <Route path="/admin/manage-pages" element={<AdminManagePagesPage />} />
+
+      {/* Parent portal — state-based nav inside the component */}
+      <Route path="/parent/*" element={<ParentPortalRoot />} />
+
+      {/* Teacher portal — self-contained */}
+      <Route path="/teacher/*" element={<TeacherPortal />} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

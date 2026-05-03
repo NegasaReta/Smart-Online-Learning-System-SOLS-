@@ -9,6 +9,7 @@ import {
   getPreferences,
 } from "./features/student/settings/preferencesStore";
 import "./styles/globals.css";
+import "./index.css";
 
 // Apply persisted preferences (theme, font-size, high-contrast) before render.
 applyPreferences(getPreferences());

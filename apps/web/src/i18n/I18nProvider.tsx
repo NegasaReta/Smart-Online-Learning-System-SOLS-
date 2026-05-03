@@ -10,6 +10,7 @@ import {
 import en from "./en.json";
 import am from "./am.json";
 import om from "./om.json";
+import { TRANSLATIONS, LANGUAGES } from "./translations";
 
 export type Locale = "en" | "am" | "om";
 
@@ -84,9 +85,13 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   const t = useCallback(
     (key: string, vars?: Vars) => {
+      // Priority: JSON dict (current locale) → JSON dict (EN) → teammate's flat
+      // TRANSLATIONS dict (current locale) → TRANSLATIONS (EN) → raw key.
       const value =
         resolve(dictionaries[locale], key) ??
         resolve(dictionaries.en, key) ??
+        TRANSLATIONS[locale]?.[key] ??
+        TRANSLATIONS.en?.[key] ??
         key;
       return format(value, vars);
     },
@@ -101,10 +106,53 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }
 
-export function useT(): I18nContextValue {
+/**
+ * Callable i18n hook that is compatible with BOTH usage styles used across
+ * the codebase:
+ *
+ *   const { t, locale, setLocale } = useT();     // object destructure
+ *   t("some.key")
+ *
+ *   const t = useT();                            // treat as a function
+ *   t("some.key")
+ *
+ * The returned value is a function (so calling `t("key")` works directly) that
+ * also has `.t`, `.locale`, and `.setLocale` attached, so destructuring works
+ * as before.
+ */
+type LegacyAliases = {
+  /** Alias of `locale` (used by teammate's parent/teacher portal code). */
+  lang: Locale;
+  /** Alias of `setLocale`. */
+  setLang: (l: Locale) => void;
+  /** List of available languages in the teammate's shape. */
+  languages: typeof LANGUAGES;
+};
+
+type CallableT = I18nContextValue &
+  LegacyAliases &
+  ((key: string, vars?: Vars) => string);
+
+export function useT(): CallableT {
   const ctx = useContext(I18nContext);
   if (!ctx) {
     throw new Error("useT must be used within an I18nProvider");
   }
-  return ctx;
+  const fn = ((key: string, vars?: Vars) => ctx.t(key, vars)) as CallableT;
+  fn.t = ctx.t;
+  fn.locale = ctx.locale;
+  fn.setLocale = ctx.setLocale;
+  // Legacy aliases for teammate's parent/teacher portal code.
+  fn.lang = ctx.locale;
+  fn.setLang = ctx.setLocale;
+  fn.languages = LANGUAGES;
+  return fn;
+}
+
+/**
+ * Compatibility alias for code expecting `useI18n()` (teammate's parent/teacher
+ * portal imports this name in a few files).
+ */
+export function useI18n(): CallableT {
+  return useT();
 }

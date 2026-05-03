@@ -4,7 +4,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["Inter", "Lexend", "system-ui", "sans-serif"],
+        sans: ["Inter", "Lexend", "ui-sans-serif", "system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"],
         serif: ["Playfair Display", "Georgia", "serif"],
       },
       colors: {
