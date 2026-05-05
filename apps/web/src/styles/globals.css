@@ -91,6 +91,70 @@ html.theme-dark .divide-ink-100 > * + * {
   border-color: #1f2937 !important;
 }
 
+/* ---------- Dark theme: slate palette (parent / teacher portals) ---------- */
+html.theme-dark .bg-white\/80 {
+  background-color: rgba(17, 24, 39, 0.8) !important;
+}
+html.theme-dark .bg-slate-50 {
+  background-color: #0f172a !important;
+}
+html.theme-dark .bg-slate-100 {
+  background-color: #1e293b !important;
+}
+html.theme-dark .hover\:bg-slate-50:hover,
+html.theme-dark .hover\:bg-slate-100:hover {
+  background-color: #1e293b !important;
+}
+html.theme-dark .border-slate-100,
+html.theme-dark .border-slate-200,
+html.theme-dark .ring-slate-100,
+html.theme-dark .ring-slate-200 {
+  border-color: #1f2937 !important;
+}
+html.theme-dark .ring-1.ring-slate-100,
+html.theme-dark .ring-1.ring-slate-200 {
+  --tw-ring-color: #1f2937 !important;
+}
+html.theme-dark .text-slate-900 {
+  color: #f1f5f9 !important;
+}
+html.theme-dark .text-slate-800 {
+  color: #e2e8f0 !important;
+}
+html.theme-dark .text-slate-700 {
+  color: #cbd5e1 !important;
+}
+html.theme-dark .text-slate-600 {
+  color: #94a3b8 !important;
+}
+html.theme-dark .text-slate-500 {
+  color: #94a3b8 !important;
+}
+html.theme-dark .text-slate-400 {
+  color: #64748b !important;
+}
+html.theme-dark .bg-slate-900,
+html.theme-dark .bg-slate-900\/90 {
+  background-color: #020617 !important;
+}
+html.theme-dark .bg-indigo-50 {
+  background-color: rgba(99, 102, 241, 0.15) !important;
+}
+html.theme-dark .text-indigo-700,
+html.theme-dark .text-indigo-600 {
+  color: #a5b4fc !important;
+}
+html.theme-dark .bg-rose-50 {
+  background-color: rgba(244, 63, 94, 0.12) !important;
+}
+html.theme-dark .ring-2.ring-white {
+  --tw-ring-color: #111827 !important;
+}
+html.theme-dark .divide-slate-100 > * + *,
+html.theme-dark .divide-slate-200 > * + * {
+  border-color: #1f2937 !important;
+}
+
 /* ---------- Reduce motion ---------- */
 html.reduce-motion *,
 html.reduce-motion *::before,

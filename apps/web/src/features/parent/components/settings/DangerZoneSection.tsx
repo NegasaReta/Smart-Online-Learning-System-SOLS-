@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle2, LogOut, Trash2, X } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Trash2, X, type LucideIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useT } from "../../../../i18n/I18nProvider";
 
@@ -22,12 +22,6 @@ export function DangerZoneSection() {
       </header>
 
       <div className="mt-5 space-y-3 border-t border-slate-100 pt-5">
-        <Row
-          icon={LogOut}
-          title={t("Sign out of all devices")}
-          description={t("End every active session except the one you're using right now.")}
-          actionLabel={t("Sign out all")}
-        />
         <Row
           icon={Trash2}
           title={t("Delete account")}
@@ -67,7 +61,7 @@ function Row({
   disabled,
   onClick,
 }: {
-  icon: typeof LogOut;
+  icon: LucideIcon;
   title: string;
   description: string;
   actionLabel: string;

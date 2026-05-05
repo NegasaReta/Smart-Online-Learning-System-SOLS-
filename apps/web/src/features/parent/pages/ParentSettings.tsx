@@ -4,15 +4,15 @@ import type { TranslationKey } from "../../../i18n/translations";
 import { ProfileSection } from "../components/settings/ProfileSection";
 import { NotificationsSection } from "../components/settings/NotificationsSection";
 import { SecuritySection } from "../components/settings/SecuritySection";
-import { LinkedChildrenSection } from "../components/settings/LinkedChildrenSection";
 import { PreferencesSection } from "../components/settings/PreferencesSection";
+import { AppearanceSection } from "../components/settings/AppearanceSection";
+import { AccessibilitySection } from "../components/settings/AccessibilitySection";
 import { DangerZoneSection } from "../components/settings/DangerZoneSection";
 
 type TabId =
   | "profile"
   | "notifications"
   | "security"
-  | "children"
   | "preferences"
   | "danger";
 
@@ -20,7 +20,6 @@ const tabs: { id: TabId; labelKey: TranslationKey }[] = [
   { id: "profile", labelKey: "settings.tab.profile" },
   { id: "notifications", labelKey: "settings.tab.notifications" },
   { id: "security", labelKey: "settings.tab.security" },
-  { id: "children", labelKey: "settings.tab.children" },
   { id: "preferences", labelKey: "settings.tab.preferences" },
   { id: "danger", labelKey: "settings.tab.account" },
 ];
@@ -65,8 +64,13 @@ export function ParentSettings() {
         {active === "profile" && <ProfileSection />}
         {active === "notifications" && <NotificationsSection />}
         {active === "security" && <SecuritySection />}
-        {active === "children" && <LinkedChildrenSection />}
-        {active === "preferences" && <PreferencesSection />}
+        {active === "preferences" && (
+          <>
+            <AppearanceSection />
+            <AccessibilitySection />
+            <PreferencesSection />
+          </>
+        )}
         {active === "danger" && <DangerZoneSection />}
       </div>
     </div>

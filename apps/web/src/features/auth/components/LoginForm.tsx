@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   Mail,
   Lock,
+  Users,
   Eye,
   EyeOff,
   ArrowRight,
@@ -22,14 +23,16 @@ import {
 
 const ROLE_REDIRECTS: Record<string, string> = {
   student: "/student/dashboard",
-  teacher: "/student/dashboard",
+  teacher: "/teacher",
+  parent: "/parent",
   admin: "/admin/dashboard",
 };
 
 const ROLE_OPTIONS = [
   { value: "student", label: "Student", icon: GraduationCap, color: "text-brand" },
   { value: "teacher", label: "Teacher", icon: BookOpen, color: "text-emerald-600" },
-  { value: "admin", label: "Admin", icon: Shield, color: "text-violet-600" },
+  { value: "parent", label: "Parent", icon: Users, color: "text-violet-600" },
+  { value: "admin", label: "Admin", icon: Shield, color: "text-amber-600" },
 ];
 
 export function LoginForm() {
@@ -92,7 +95,7 @@ export function LoginForm() {
         <span className="text-xs font-semibold uppercase tracking-wider text-ink-400">
           Sign in as
         </span>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {ROLE_OPTIONS.map(({ value, label, icon: Icon, color }) => {
             const active = selectedRole === value;
             return (

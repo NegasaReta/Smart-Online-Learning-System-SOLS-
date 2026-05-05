@@ -4,6 +4,8 @@ import type { TranslationKey } from "../../../i18n/translations";
 import { DangerZoneSection } from "../../parent/components/settings/DangerZoneSection";
 import { NotificationsSection } from "../../parent/components/settings/NotificationsSection";
 import { PreferencesSection } from "../../parent/components/settings/PreferencesSection";
+import { AppearanceSection } from "../../parent/components/settings/AppearanceSection";
+import { AccessibilitySection } from "../../parent/components/settings/AccessibilitySection";
 import { SecuritySection } from "../../parent/components/settings/SecuritySection";
 import { TeacherProfileSection } from "../components/settings/TeacherProfileSection";
 import { TeachingAssignmentsSection } from "../components/settings/TeachingAssignmentsSection";
@@ -66,7 +68,13 @@ export function TeacherSettings() {
         {active === "notifications" && <NotificationsSection />}
         {active === "security" && <SecuritySection />}
         {active === "assignments" && <TeachingAssignmentsSection />}
-        {active === "preferences" && <PreferencesSection />}
+        {active === "preferences" && (
+          <>
+            <AppearanceSection />
+            <AccessibilitySection />
+            <PreferencesSection />
+          </>
+        )}
         {active === "danger" && <DangerZoneSection />}
       </div>
     </div>
