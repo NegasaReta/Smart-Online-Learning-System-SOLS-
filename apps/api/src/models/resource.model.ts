@@ -1,0 +1,81 @@
+import { pool } from '../db/index';
+
+export const getResources = async (subject?: string, type?: string, page: number = 1, limit: number = 8) => {
+  const offset = (page - 1) * limit;
+  let query = `
+    SELECT 
+      r.id, r.title, r.kind, s.name as subject, 
+      r.size, TO_CHAR(r.created_at, 'MMM DD, YYYY') as date, 
+      r.duration,
+      CASE 
+        WHEN r.kind = 'video' THEN 'watch'
+        WHEN r.kind = 'pdf' THEN 'view'
+        ELSE 'download'
+      END as "primaryAction",
+      r.download_url as "downloadUrl",
+      r.view_url as "viewUrl"
+    FROM resources r
+    JOIN subjects s ON r.subject_id = s.id
+    WHERE 1=1
+  `;
+  const params: any[] = [];
+
+  if (subject) {
+    params.push(subject);
+    query += ` AND s.name = $${params.length}`;
+  }
+  if (type) {
+    params.push(type);
+    query += ` AND r.kind = $${params.length}`;
+  }
+
+  const countQuery = `SELECT COUNT(*) FROM (${query}) as count_table`;
+  const countResult = await pool.query(countQuery, params);
+  const total = parseInt(countResult.rows[0].count, 10);
+
+  query += ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+  params.push(limit, offset);
+
+  const result = await pool.query(query, params);
+
+  return {
+    total,
+    page,
+    items: result.rows
+  };
+};
+
+export const getRecentResources = async (userId: string) => {
+  const result = await pool.query(`
+    SELECT r.id, r.title, rv.progress
+    FROM resource_views rv
+    JOIN resources r ON rv.resource_id = r.id
+    WHERE rv.user_id = $1
+    ORDER BY rv.viewed_at DESC
+    LIMIT 5
+  `, [userId]);
+  return result.rows;
+};
+
+export const getResourceSubjects = async () => {
+  const result = await pool.query('SELECT id, name FROM subjects');
+  return result.rows;
+};
+
+export const requestResource = async (userId: string, title: string, subject: string, description: string) => {
+  const result = await pool.query(`
+    INSERT INTO resource_requests (user_id, title, subject, description)
+    VALUES ($1, $2, $3, $4)
+    RETURNING *
+  `, [userId, title, subject, description]);
+  return result.rows[0];
+};
+
+export const trackResourceView = async (userId: string, resourceId: string, progress: number) => {
+  await pool.query(`
+    INSERT INTO resource_views (user_id, resource_id, progress)
+    VALUES ($1, $2, $3)
+    ON CONFLICT (user_id, resource_id) 
+    DO UPDATE SET progress = $3, viewed_at = CURRENT_TIMESTAMP
+  `, [userId, resourceId, progress]);
+};

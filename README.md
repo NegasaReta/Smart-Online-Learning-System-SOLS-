@@ -2,7 +2,44 @@
 
 Welcome to the SOLS project repository! This project is structured as a **Monorepo**, meaning both our Frontend and Backend applications, along with shared configurations and documentation, all live together in this single repository.
 
-This architecture ensures that our Frontend and Backend teams stay in sync, share code and types effortlessly, and maintain a unified standard of quality.
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js
+- PostgreSQL (Neon recommended)
+- `npm` or `yarn`
+
+### Installation
+1. Clone the repository.
+2. Install dependencies in the root and in `apps/api`:
+   ```bash
+   npm install
+   cd apps/api
+   npm install
+   ```
+3. Set up your `.env` file in `apps/api` (see `.env.example`).
+
+### Database Setup
+To initialize the database and seed it with Phase 1 test data:
+```bash
+cd apps/api
+npm run seed
+```
+
+### Running the API
+```bash
+npm run dev
+```
+
+## 🛠 Phase 1 Implementation (MVP)
+The following modules have been implemented for the Student API:
+- **Courses**: Managed via slugs, grouped by modules.
+- **Dashboard**: Progress overview, current courses, and upcoming tasks.
+- **Lesson Player**: Unified video/PDF player with completion tracking.
+- **Assignments**: Enhanced submission workflow with file uploads.
+- **Grades**: GPA and subject-wise grade tracking.
+
+For detailed API examples, see [api_documentation.md](file:///c:/Users/HP/.gemini/antigravity/brain/8b68249a-d361-466b-b097-ec2e97bdbb99/artifacts/api_documentation.md).
 
 ## 📂 Repository Architecture Overview
 
