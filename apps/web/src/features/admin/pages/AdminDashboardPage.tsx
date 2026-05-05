@@ -140,7 +140,7 @@ export default function AdminDashboardPage() {
                   <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} tickFormatter={(v) => v >= 1000 ? `${v / 1000}k` : String(v)} />
                   <Tooltip cursor={{ fill: "rgba(124,58,237,0.05)" }} contentStyle={{ borderRadius: 10, border: "1px solid #e2e8f0", fontSize: 12 }}
-                    formatter={(val: number) => [val.toLocaleString(), ""]} />
+                    formatter={(val) => [Number(val ?? 0).toLocaleString(), ""]} />
                   <Bar dataKey="teacher" fill="#7c3aed" radius={[4, 4, 0, 0]} name="Teacher" animationDuration={800} />
                   <Bar dataKey="student" fill="#fb923c" radius={[4, 4, 0, 0]} name="Student" animationDuration={800} />
                 </BarChart>
