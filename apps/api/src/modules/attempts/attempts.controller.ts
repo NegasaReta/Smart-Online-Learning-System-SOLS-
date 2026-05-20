@@ -12,8 +12,11 @@ export const getAllAttemptsController = async (
 ): Promise<void> => {
   try {
     const authUser = (req as any).auth;
+    
+    // Parse the authenticated user's ID to a number
+    const userId = parseInt(authUser.userId, 10);
 
-    const attempts = await getAllAttemptsByUser(authUser.userId);
+    const attempts = await getAllAttemptsByUser(userId);
 
     res.status(200).json({
       success: true,
@@ -37,7 +40,20 @@ export const getAttemptsByQuizController = async (
     const authUser = (req as any).auth;
     const { quizId } = req.params;
 
-    const attempts = await getAttemptsByQuiz(authUser.userId, quizId);
+    // Parse string parameters to numbers
+    const userId = parseInt(authUser.userId, 10);
+    const parsedQuizId = parseInt(quizId, 10);
+
+    // Validate that the quiz ID is a valid number
+    if (isNaN(parsedQuizId)) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid quiz ID format",
+      });
+      return;
+    }
+
+    const attempts = await getAttemptsByQuiz(userId, parsedQuizId);
 
     res.status(200).json({
       success: true,
@@ -61,7 +77,20 @@ export const getAttemptStatusController = async (
     const authUser = (req as any).auth;
     const { quizId } = req.params;
 
-    const status = await getAttemptStatus(authUser.userId, quizId);
+    // Parse string parameters to numbers
+    const userId = parseInt(authUser.userId, 10);
+    const parsedQuizId = parseInt(quizId, 10);
+
+    // Validate that the quiz ID is a valid number
+    if (isNaN(parsedQuizId)) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid quiz ID format",
+      });
+      return;
+    }
+
+    const status = await getAttemptStatus(userId, parsedQuizId);
 
     if (!status) {
       res.status(404).json({

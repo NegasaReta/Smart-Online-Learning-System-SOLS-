@@ -1,7 +1,7 @@
 import { pool } from "../../db/index";
 
 export interface SubjectProgress {
-  subjectId: string;
+  subjectId: number;
   subjectName: string;
   grade: string;
   totalLessons: number;
@@ -22,8 +22,8 @@ export interface ProgressSummary {
 
 // Get progress for a student per subject
 export async function getProgressBySubject(
-  userId: string,
-  subjectId: string
+  userId: number,
+  subjectId: number
 ): Promise<SubjectProgress | null> {
   // Get subject info
   const subjectResult = await pool.query(
@@ -68,14 +68,14 @@ export async function getProgressBySubject(
   const totalQuizzes = parseInt(quizzesResult.rows[0].total_quizzes);
   const passedQuizzes = parseInt(quizzesResult.rows[0].passed_quizzes);
 
-  // Get total assignments and submitted assignments
+  // Get total assignments and submitted
   const assignmentsResult = await pool.query(
     `SELECT
       COUNT(a.id) AS total_assignments,
       COUNT(asub.id) AS submitted_assignments
      FROM lessons l
      LEFT JOIN assignments a ON a.lesson_id = l.id
-     LEFT JOIN assignment_submissions asub ON asub.assignment_id = a.id 
+     LEFT JOIN assignment_submissions asub ON asub.assignment_id = a.id
        AND asub.user_id = $1
      WHERE l.subject_id = $2`,
     [userId, subjectId]
@@ -110,9 +110,8 @@ export async function getProgressBySubject(
 
 // Get full progress summary for a student
 export async function getProgressSummary(
-  userId: string
+  userId: number
 ): Promise<ProgressSummary> {
-  // Get all subjects that have content the student interacted with
   const subjectsResult = await pool.query(
     `SELECT DISTINCT s.id
      FROM subjects s
@@ -122,10 +121,10 @@ export async function getProgressSummary(
      LEFT JOIN quizzes q ON q.lesson_id = l.id
      LEFT JOIN quiz_submissions qs ON qs.quiz_id = q.id AND qs.user_id = $1
      LEFT JOIN assignments a ON a.lesson_id = l.id
-     LEFT JOIN assignment_submissions asub ON asub.assignment_id = a.id 
+     LEFT JOIN assignment_submissions asub ON asub.assignment_id = a.id
        AND asub.user_id = $1
-     WHERE vp.id IS NOT NULL 
-        OR qs.id IS NOT NULL 
+     WHERE vp.id IS NOT NULL
+        OR qs.id IS NOT NULL
         OR asub.id IS NOT NULL`,
     [userId]
   );
@@ -152,9 +151,9 @@ export async function getProgressSummary(
   };
 }
 
-// Get progress for a specific student by id (for teacher/parent view)
+// Get progress for a specific student by id (teacher/parent view)
 export async function getStudentProgress(
-  studentId: string
+  studentId: number
 ): Promise<ProgressSummary> {
   return getProgressSummary(studentId);
 }

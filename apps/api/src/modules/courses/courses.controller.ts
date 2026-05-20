@@ -97,7 +97,11 @@ export const getCourseByIdController = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { id } = req.params;
+    const id = parseInt(req.params.id);
+if (isNaN(id)) {
+  res.status(400).json({ success: false, message: "Invalid id" });
+  return;
+}
     const course = await getCourseById(id);
 
     if (!course) {
@@ -127,7 +131,11 @@ export const updateCourseController = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { id } = req.params;
+    const id = parseInt(req.params.id);
+if (isNaN(id)) {
+  res.status(400).json({ success: false, message: "Invalid id" });
+  return;
+}
     const { name, grade, description } = req.body;
 
     if (!name || !grade) {
@@ -167,7 +175,11 @@ export const deleteCourseController = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { id } = req.params;
+    const id = parseInt(req.params.id);
+if (isNaN(id)) {
+  res.status(400).json({ success: false, message: "Invalid id" });
+  return;
+}
     const deleted = await deleteCourse(id);
 
     if (!deleted) {

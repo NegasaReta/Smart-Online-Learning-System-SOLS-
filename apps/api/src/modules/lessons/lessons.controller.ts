@@ -14,7 +14,16 @@ export const createLessonController = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { subjectId, title, description, orderNo } = req.body;
+    const { title, description, orderNo } = req.body;
+    const subjectId = parseInt(req.body.subjectId);
+
+    if (isNaN(subjectId)) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid subjectId",
+      });
+      return;
+    }
 
     if (!subjectId || !title) {
       res.status(400).json({
@@ -24,7 +33,6 @@ export const createLessonController = async (
       return;
     }
 
-    // Auto assign order number if not provided
     const finalOrderNo = orderNo ?? (await getNextOrderNo(subjectId));
 
     const lesson = await createLesson(
@@ -53,7 +61,15 @@ export const getLessonsBySubjectController = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { id } = req.params;
+    const id = parseInt(req.params.id);
+
+    if (isNaN(id)) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid id",
+      });
+      return;
+    }
 
     const lessons = await getLessonsBySubject(id);
 
@@ -76,7 +92,15 @@ export const getLessonByIdController = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { id } = req.params;
+    const id = parseInt(req.params.id);
+
+    if (isNaN(id)) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid id",
+      });
+      return;
+    }
 
     const lesson = await getLessonById(id);
 
@@ -107,7 +131,16 @@ export const updateLessonController = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { id } = req.params;
+    const id = parseInt(req.params.id);
+
+    if (isNaN(id)) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid id",
+      });
+      return;
+    }
+
     const { title, description, orderNo } = req.body;
 
     if (!title || !orderNo) {
@@ -147,7 +180,15 @@ export const deleteLessonController = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { id } = req.params;
+    const id = parseInt(req.params.id);
+
+    if (isNaN(id)) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid id",
+      });
+      return;
+    }
 
     const deleted = await deleteLesson(id);
 

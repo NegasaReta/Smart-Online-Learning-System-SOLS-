@@ -1,8 +1,8 @@
 import { pool } from "../../db/index";
 
 export interface Lesson {
-  id: string;
-  subjectId: string;
+  id: number;
+  subjectId: number;
   title: string;
   description: string;
   orderNo: number;
@@ -10,7 +10,7 @@ export interface Lesson {
 
 // Create a new lesson under a subject
 export async function createLesson(
-  subjectId: string,
+  subjectId: number,
   title: string,
   description: string,
   orderNo: number
@@ -27,7 +27,7 @@ export async function createLesson(
 
 // Get all lessons under a subject in order
 export async function getLessonsBySubject(
-  subjectId: string
+  subjectId: number
 ): Promise<Lesson[]> {
   const result = await pool.query(
     `SELECT id, subject_id AS "subjectId", title, description,
@@ -41,7 +41,7 @@ export async function getLessonsBySubject(
 }
 
 // Get single lesson by id
-export async function getLessonById(id: string): Promise<Lesson | null> {
+export async function getLessonById(id: number): Promise<Lesson | null> {
   const result = await pool.query(
     `SELECT id, subject_id AS "subjectId", title, description,
             order_no AS "orderNo"
@@ -55,7 +55,7 @@ export async function getLessonById(id: string): Promise<Lesson | null> {
 
 // Update lesson
 export async function updateLesson(
-  id: string,
+  id: number,
   title: string,
   description: string,
   orderNo: number
@@ -73,7 +73,7 @@ export async function updateLesson(
 }
 
 // Delete lesson
-export async function deleteLesson(id: string): Promise<boolean> {
+export async function deleteLesson(id: number): Promise<boolean> {
   const result = await pool.query(
     `DELETE FROM lessons WHERE id = $1`,
     [id]
@@ -82,7 +82,7 @@ export async function deleteLesson(id: string): Promise<boolean> {
 }
 
 // Get next order number for a subject
-export async function getNextOrderNo(subjectId: string): Promise<number> {
+export async function getNextOrderNo(subjectId: number): Promise<number> {
   const result = await pool.query(
     `SELECT COALESCE(MAX(order_no), 0) + 1 AS next_order
      FROM lessons

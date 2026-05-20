@@ -1,8 +1,8 @@
 import { pool } from "../../db/index";
 
 export interface Notification {
-  id: string;
-  userId: string;
+  id: number;
+  userId: number;
   message: string;
   isRead: boolean;
   createdAt: Date;
@@ -10,7 +10,7 @@ export interface Notification {
 
 // Create a notification
 export async function createNotification(
-  userId: string,
+  userId: number,
   message: string
 ): Promise<Notification> {
   const result = await pool.query(
@@ -25,7 +25,7 @@ export async function createNotification(
 
 // Get all notifications for a user
 export async function getNotificationsByUser(
-  userId: string
+  userId: number
 ): Promise<Notification[]> {
   const result = await pool.query(
     `SELECT id, user_id AS "userId", message,
@@ -40,8 +40,8 @@ export async function getNotificationsByUser(
 
 // Mark notification as read
 export async function markAsRead(
-  id: string,
-  userId: string
+  id: number,
+  userId: number
 ): Promise<Notification | null> {
   const result = await pool.query(
     `UPDATE notifications
@@ -56,7 +56,7 @@ export async function markAsRead(
 }
 
 // Mark all notifications as read for a user
-export async function markAllAsRead(userId: string): Promise<boolean> {
+export async function markAllAsRead(userId: number): Promise<boolean> {
   const result = await pool.query(
     `UPDATE notifications
      SET is_read = true
@@ -68,8 +68,8 @@ export async function markAllAsRead(userId: string): Promise<boolean> {
 
 // Delete a notification
 export async function deleteNotification(
-  id: string,
-  userId: string
+  id: number,
+  userId: number
 ): Promise<boolean> {
   const result = await pool.query(
     `DELETE FROM notifications
@@ -80,7 +80,7 @@ export async function deleteNotification(
 }
 
 // Get unread notification count
-export async function getUnreadCount(userId: string): Promise<number> {
+export async function getUnreadCount(userId: number): Promise<number> {
   const result = await pool.query(
     `SELECT COUNT(*) AS count
      FROM notifications

@@ -16,6 +16,16 @@ export const addVideoController = async (
     const { id } = req.params;
     const { title, url } = req.body;
 
+    const lessonId = parseInt(id, 10);
+
+    if (isNaN(lessonId)) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid lesson ID format",
+      });
+      return;
+    }
+
     if (!title || !url) {
       res.status(400).json({
         success: false,
@@ -24,7 +34,7 @@ export const addVideoController = async (
       return;
     }
 
-    const video = await addVideo(id, title, url);
+    const video = await addVideo(lessonId, title, url);
 
     res.status(201).json({
       success: true,
@@ -48,6 +58,16 @@ export const addPdfController = async (
     const { id } = req.params;
     const { title, url } = req.body;
 
+    const lessonId = parseInt(id, 10);
+
+    if (isNaN(lessonId)) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid lesson ID format",
+      });
+      return;
+    }
+
     if (!title || !url) {
       res.status(400).json({
         success: false,
@@ -56,7 +76,7 @@ export const addPdfController = async (
       return;
     }
 
-    const pdf = await addPdf(id, title, url);
+    const pdf = await addPdf(lessonId, title, url);
 
     res.status(201).json({
       success: true,
@@ -79,7 +99,17 @@ export const getMaterialsController = async (
   try {
     const { id } = req.params;
 
-    const materials = await getMaterialsByLesson(id);
+    const lessonId = parseInt(id, 10);
+
+    if (isNaN(lessonId)) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid lesson ID format",
+      });
+      return;
+    }
+
+    const materials = await getMaterialsByLesson(lessonId);
 
     res.status(200).json({
       success: true,
@@ -102,7 +132,17 @@ export const deleteVideoController = async (
   try {
     const { id } = req.params;
 
-    const deleted = await deleteVideo(id);
+    const videoId = parseInt(id, 10);
+
+    if (isNaN(videoId)) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid video ID format",
+      });
+      return;
+    }
+
+    const deleted = await deleteVideo(videoId);
 
     if (!deleted) {
       res.status(404).json({
@@ -133,7 +173,17 @@ export const deletePdfController = async (
   try {
     const { id } = req.params;
 
-    const deleted = await deletePdf(id);
+    const pdfId = parseInt(id, 10);
+
+    if (isNaN(pdfId)) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid PDF ID format",
+      });
+      return;
+    }
+
+    const deleted = await deletePdf(pdfId);
 
     if (!deleted) {
       res.status(404).json({

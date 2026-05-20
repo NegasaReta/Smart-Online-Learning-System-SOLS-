@@ -1,9 +1,9 @@
 import { pool } from "../../db/index";
 
 export interface Attempt {
-  id: string;
-  userId: string;
-  quizId: string;
+  id: number;
+  userId: number;
+  quizId: number;
   score: number;
   totalQuestions: number;
   isPassed: boolean;
@@ -11,7 +11,7 @@ export interface Attempt {
 }
 
 export interface AttemptStatus {
-  quizId: string;
+  quizId: number;
   quizTitle: string;
   maxAttempts: number;
   usedAttempts: number;
@@ -23,8 +23,8 @@ export interface AttemptStatus {
 
 // Get all attempts for a quiz by a user
 export async function getAttemptsByQuiz(
-  userId: string,
-  quizId: string
+  userId: number,
+  quizId: number
 ): Promise<Attempt[]> {
   const result = await pool.query(
     `SELECT 
@@ -42,12 +42,19 @@ export async function getAttemptsByQuiz(
      ORDER BY qs.submitted_at DESC`,
     [userId, quizId]
   );
-  return result.rows;
+  
+  // Explicitly map over rows to parse BIGINT strings into JavaScript numbers
+  return result.rows.map(row => ({
+    ...row,
+    id: parseInt(row.id, 10),
+    userId: parseInt(row.userId, 10),
+    quizId: parseInt(row.quizId, 10)
+  }));
 }
 
 // Get all attempts by a user across all quizzes
 export async function getAllAttemptsByUser(
-  userId: string
+  userId: number
 ): Promise<Attempt[]> {
   const result = await pool.query(
     `SELECT 
@@ -65,13 +72,20 @@ export async function getAllAttemptsByUser(
      ORDER BY qs.submitted_at DESC`,
     [userId]
   );
-  return result.rows;
+  
+  // Explicitly map over rows to parse BIGINT strings into JavaScript numbers
+  return result.rows.map(row => ({
+    ...row,
+    id: parseInt(row.id, 10),
+    userId: parseInt(row.userId, 10),
+    quizId: parseInt(row.quizId, 10)
+  }));
 }
 
 // Check attempt status for a quiz
 export async function getAttemptStatus(
-  userId: string,
-  quizId: string
+  userId: number,
+  quizId: number
 ): Promise<AttemptStatus | null> {
   // Get quiz info
   const quizResult = await pool.query(
@@ -93,9 +107,9 @@ export async function getAttemptStatus(
     [userId, quizId]
   );
 
-  const usedAttempts = parseInt(attemptsResult.rows[0].used_attempts);
+  const usedAttempts = parseInt(attemptsResult.rows[0].used_attempts, 10);
   const bestScore = attemptsResult.rows[0].best_score
-    ? parseInt(attemptsResult.rows[0].best_score)
+    ? parseInt(attemptsResult.rows[0].best_score, 10)
     : null;
 
   // Get total questions for pass check
@@ -108,7 +122,7 @@ export async function getAttemptStatus(
   );
   const totalQuestions =
     totalResult.rows.length > 0
-      ? parseInt(totalResult.rows[0].total_questions)
+      ? parseInt(totalResult.rows[0].total_questions, 10)
       : 0;
 
   const remainingAttempts = Math.max(0, quiz.maxAttempts - usedAttempts);
@@ -118,7 +132,7 @@ export async function getAttemptStatus(
     : false;
 
   return {
-    quizId: quiz.id,
+    quizId: parseInt(quiz.id, 10), // Parse database string to number
     quizTitle: quiz.title,
     maxAttempts: quiz.maxAttempts,
     usedAttempts,

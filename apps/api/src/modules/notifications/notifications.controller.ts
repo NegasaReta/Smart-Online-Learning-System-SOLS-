@@ -14,7 +14,12 @@ export const createNotificationController = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { userId, message } = req.body;
+    const { message } = req.body;
+const userId = parseInt(req.body.userId);
+if (isNaN(userId)) {
+  res.status(400).json({ success: false, message: "Invalid userId" });
+  return;
+}
 
     if (!userId || !message) {
       res.status(400).json({
@@ -92,7 +97,11 @@ export const markAsReadController = async (
 ): Promise<void> => {
   try {
     const authUser = (req as any).auth;
-    const { id } = req.params;
+    const id = parseInt(req.params.id);
+if (isNaN(id)) {
+  res.status(400).json({ success: false, message: "Invalid id" });
+  return;
+}
 
     const notification = await markAsRead(id, authUser.userId);
 
@@ -147,7 +156,11 @@ export const deleteNotificationController = async (
 ): Promise<void> => {
   try {
     const authUser = (req as any).auth;
-    const { id } = req.params;
+    const id = parseInt(req.params.id);
+if (isNaN(id)) {
+  res.status(400).json({ success: false, message: "Invalid id" });
+  return;
+}
 
     const deleted = await deleteNotification(id, authUser.userId);
 

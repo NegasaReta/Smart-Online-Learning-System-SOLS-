@@ -1,15 +1,15 @@
 import { pool } from "../../db/index";
 
 export interface Video {
-  id: string;
-  lessonId: string;
+  id: number;
+  lessonId: number;
   title: string;
   url: string;
 }
 
 export interface Pdf {
-  id: string;
-  lessonId: string;
+  id: number;
+  lessonId: number;
   title: string;
   url: string;
 }
@@ -21,7 +21,7 @@ export interface Materials {
 
 // Add video to lesson
 export async function addVideo(
-  lessonId: string,
+  lessonId: number,
   title: string,
   url: string
 ): Promise<Video> {
@@ -31,12 +31,18 @@ export async function addVideo(
      RETURNING id, lesson_id AS "lessonId", title, url`,
     [lessonId, title, url]
   );
-  return result.rows[0];
+  
+  const row = result.rows[0];
+  return {
+    ...row,
+    id: parseInt(row.id, 10),
+    lessonId: parseInt(row.lessonId, 10)
+  };
 }
 
 // Add PDF to lesson
 export async function addPdf(
-  lessonId: string,
+  lessonId: number,
   title: string,
   url: string
 ): Promise<Pdf> {
@@ -46,12 +52,18 @@ export async function addPdf(
      RETURNING id, lesson_id AS "lessonId", title, url`,
     [lessonId, title, url]
   );
-  return result.rows[0];
+  
+  const row = result.rows[0];
+  return {
+    ...row,
+    id: parseInt(row.id, 10),
+    lessonId: parseInt(row.lessonId, 10)
+  };
 }
 
 // Get all materials for a lesson
 export async function getMaterialsByLesson(
-  lessonId: string
+  lessonId: number
 ): Promise<Materials> {
   const videosResult = await pool.query(
     `SELECT id, lesson_id AS "lessonId", title, url
@@ -69,14 +81,27 @@ export async function getMaterialsByLesson(
     [lessonId]
   );
 
+  // Safely parse array rows from BIGINT strings to JavaScript numbers
+  const videos = videosResult.rows.map(row => ({
+    ...row,
+    id: parseInt(row.id, 10),
+    lessonId: parseInt(row.lessonId, 10)
+  }));
+
+  const pdfs = pdfsResult.rows.map(row => ({
+    ...row,
+    id: parseInt(row.id, 10),
+    lessonId: parseInt(row.lessonId, 10)
+  }));
+
   return {
-    videos: videosResult.rows,
-    pdfs: pdfsResult.rows,
+    videos,
+    pdfs,
   };
 }
 
 // Delete video
-export async function deleteVideo(id: string): Promise<boolean> {
+export async function deleteVideo(id: number): Promise<boolean> {
   const result = await pool.query(
     `DELETE FROM videos WHERE id = $1`,
     [id]
@@ -85,7 +110,7 @@ export async function deleteVideo(id: string): Promise<boolean> {
 }
 
 // Delete PDF
-export async function deletePdf(id: string): Promise<boolean> {
+export async function deletePdf(id: number): Promise<boolean> {
   const result = await pool.query(
     `DELETE FROM pdfs WHERE id = $1`,
     [id]

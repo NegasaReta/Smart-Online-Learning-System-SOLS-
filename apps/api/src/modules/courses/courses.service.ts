@@ -1,11 +1,10 @@
 import { pool } from "../../db/index";
 
 export interface Course {
-  id: string;
+  id: number;
   name: string;
   description: string;
   grade: string;
-  createdAt?: Date;
 }
 
 // Create a new subject
@@ -46,7 +45,7 @@ export async function getAllCourses(): Promise<Course[]> {
 }
 
 // Get single subject by id
-export async function getCourseById(id: string): Promise<Course | null> {
+export async function getCourseById(id: number): Promise<Course | null> {
   const result = await pool.query(
     `SELECT id, name, grade, description
      FROM subjects
@@ -59,7 +58,7 @@ export async function getCourseById(id: string): Promise<Course | null> {
 
 // Update subject
 export async function updateCourse(
-  id: string,
+  id: number,
   name: string,
   grade: string,
   description: string
@@ -76,7 +75,7 @@ export async function updateCourse(
 }
 
 // Delete subject
-export async function deleteCourse(id: string): Promise<boolean> {
+export async function deleteCourse(id: number): Promise<boolean> {
   const result = await pool.query(
     `DELETE FROM subjects WHERE id = $1`,
     [id]
