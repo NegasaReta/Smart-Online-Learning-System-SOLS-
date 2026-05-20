@@ -1,8 +1,13 @@
 {
-    "name": "sols-monorepo",
-    "version": "1.0.0",
-    "private": true,
-    "workspaces": [
-        "apps/*"
-    ]
+  "name": "sols-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm --workspace apps/web run dev",
+    "dev:api": "npm --workspace apps/api run dev",
+    "build": "npm --workspace apps/web run build"
+  }
 }
