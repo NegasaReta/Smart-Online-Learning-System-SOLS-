@@ -1,13 +1,26 @@
+# Dependencies
 node_modules/
-**/node_modules/
-.env
-.DS_Store
-node_modules
-dist
-*.tsbuildinfo
+.pnp
+.pnp.js
+
+# Environment variables
 .env
 .env.local
-.DS_Store
+.env.development
+.env.production
+
+# Build outputs
+dist/
+build/
+
+# Logs
+logs/
 *.log
-.vscode
-.idea
+npm-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# OS files
+.DS_Store
+Thumbs.db
