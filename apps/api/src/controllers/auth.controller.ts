@@ -3,14 +3,54 @@ import * as AuthService from '../services/auth.service';
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
+<<<<<<< HEAD
     const { fullName, email, password, role } = req.body;
+=======
+    const { 
+      fullName, 
+      email, 
+      password, 
+      role, 
+      grade, 
+      gradeLevel, 
+      studentEmail,
+      ...profileData 
+    } = req.body;
+>>>>>>> a01631ddd1ded3fe72005f7de850eb1934ef798c
 
     if (!fullName || !email || !password || !role) {
       res.status(400).json({ error: 'fullName, email, password, and role are required' });
       return;
     }
 
+<<<<<<< HEAD
     const user = await AuthService.registerUser(fullName, email, password, role);
+=======
+    const finalGrade = grade || gradeLevel;
+
+    if (role === 'student' && !finalGrade) {
+      res.status(400).json({ error: 'gradeLevel is required for student role' });
+      return;
+    }
+
+    if (role === 'parent' && studentEmail) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(studentEmail)) {
+        res.status(400).json({ error: 'Invalid studentEmail format' });
+        return;
+      }
+    }
+
+    const user = await AuthService.registerUser(
+      fullName, 
+      email, 
+      password, 
+      role, 
+      finalGrade, 
+      studentEmail, 
+      profileData
+    );
+>>>>>>> a01631ddd1ded3fe72005f7de850eb1934ef798c
     res.status(201).json({ message: 'User registered successfully', user });
   } catch (error: any) {
     if (error.message === 'Email already exists') {

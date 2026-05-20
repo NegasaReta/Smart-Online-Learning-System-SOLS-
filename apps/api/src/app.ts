@@ -1,13 +1,37 @@
 import 'dotenv/config';
 import express from 'express';
+import cors from 'cors';
 import { authenticateJWT } from './middlewares/authenticateJWT';
 import authRoutes from './routes/auth.routes';
+import studentRoutes from './routes/student.routes';
+import parentRoutes from './routes/parent.routes';
+import { createServer } from 'http';
+import { initSocket } from './lib/socket';
+import { initDb } from './db/index';
+
+initDb();
 
 const app = express();
+const httpServer = createServer(app);
+
+// Enable CORS for frontend
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://localhost:3001'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
+// Initialize Socket.io
+initSocket(httpServer);
+
 app.use(express.json());
 
 app.use('/auth', authRoutes);
 app.use('/api', authRoutes);
+app.use('/api/student', studentRoutes);
+app.use('/student', studentRoutes);
+app.use('/api/parent', parentRoutes);
 
 // A public route (No middleware)
 app.get('/public', (req, res) => {
@@ -24,6 +48,6 @@ app.get('/protected', authenticateJWT, (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
